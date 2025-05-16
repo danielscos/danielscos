@@ -8,7 +8,7 @@
  Welcome to my GitHub profile!
 -->
 
-# Hi there, I’m [Your Name] 👋
+# Hi there, I’m Daniel 👋
 
 ## 🚀 Tech Stack
 
@@ -33,16 +33,8 @@
 
 ---
 
-## ❤️ Things I Love
-
-![🎥 Cinematography](https://img.shields.io/badge/Cinematography-4K%20&%20HDR-darkviolet?style=for-the-badge&logo=video)
-![🏋️‍♂️ Weightlifting](https://img.shields.io/badge/Weightlifting-Gym%20Life-brightgreen?style=for-the-badge&logo=gym)
-![☕️ Coffee](https://img.shields.io/badge/Coffee-☕️%20Fuel-brown?style=for-the-badge&logo=coffee)
-
----
-
 ## Info
-- [ℹ️ About Me](https://danielscos.github.io/about_me/)
+- [ℹ️ About Me](https://img.shields.io/badge/About-Me-yellow?style=for-the-badge&logo=numpy&logoColor=white)
 
 ---
 
