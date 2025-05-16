@@ -1,6 +1,6 @@
 # Hi there, I’m Daniel 👋
 
-# A silly compooters Italian guy :3
+## A silly Italian compooters guy :3
 
 ## 🚀 Tech Stack
 
