@@ -2,7 +2,7 @@
 
 ## A silly Italian compooters guy :3
 
-## 🚀 Tech Stack
+# 🚀 Tech Stack
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-black?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
