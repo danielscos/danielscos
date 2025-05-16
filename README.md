@@ -42,7 +42,7 @@
 ---
 
 ## Info
-- About Me: [danielscos.github.io/about_me/](https://danielscos.github.io/about_me/)
+- [About Me](https://danielscos.github.io/about_me/)
 
 ---
 
