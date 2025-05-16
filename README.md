@@ -34,7 +34,7 @@
 ---
 
 ## Info
-- [ℹ️ About Me](https://img.shields.io/badge/About-Me-yellow?style=for-the-badge&logo=numpy&logoColor=white)
+[![About Me](https://img.shields.io/badge/About--Me-yellow?style=for-the-badge&logo=numpy&logoColor=white)](https://danielscos.github.io/about_me)
 
 ---
 
