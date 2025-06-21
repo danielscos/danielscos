@@ -12,6 +12,18 @@
 
 ---
 
+## 📊 Coding Stats
+
+[![Hackatime](https://img.shields.io/badge/Hackatime-Hack%20Club-orange?style=for-the-badge&logo=wakatime&logoColor=white)](https://hackatime.hackclub.com)
+
+<!--START_SECTION:waka-->
+<!--END_SECTION:waka-->
+
+### 💾 Languages & 💼 Projects
+*Stats will be automatically updated by GitHub Actions once configured with Hackatime API*
+
+---
+
 ## Info
 [![About Me](https://img.shields.io/badge/About--Me-black?style=for-the-badge&logo=numpy&logoColor=white)](https://danielscos.github.io/about_me)
 
