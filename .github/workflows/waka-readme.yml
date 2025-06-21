@@ -26,10 +26,13 @@ jobs:
           sudo mv markscribe /usr/local/bin/
 
       - name: Generate README
-        run: markscribe -write README.md README.md.tpl
+        run: |
+          # Encode API key for Basic auth (API_KEY:)
+          ENCODED_KEY=$(echo -n "${{ secrets.WAKATIME_API_KEY }}:" | base64)
+          export WAKATIME_API_KEY="$ENCODED_KEY"
+          markscribe -write README.md README.md.tpl
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
 
       - name: Commit and push changes

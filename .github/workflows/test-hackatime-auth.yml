@@ -1,0 +1,151 @@
+name: Test Hackatime Authentication
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  test-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Hackatime API Authentication Methods
+        run: |
+          echo "=== Testing Hackatime API Authentication ==="
+
+          API_KEY="${{ secrets.WAKATIME_API_KEY }}"
+          BASE_URL="https://hackatime.hackclub.com/api/hackatime/v1"
+
+          # Test endpoints to try
+          ENDPOINTS=(
+            "users/current"
+            "users/current/stats/last_7_days"
+            "users/current/summaries"
+            "users/current/stats"
+          )
+
+          echo "Using API Key: ${API_KEY:0:8}..." # Show only first 8 chars for security
+          echo "Base URL: $BASE_URL"
+          echo ""
+
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo "=========================================="
+            echo "Testing endpoint: $endpoint"
+            echo "=========================================="
+
+            FULL_URL="$BASE_URL/$endpoint"
+
+            # Method 1: Bearer Authorization
+            echo "1. Testing Bearer Authorization..."
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "Authorization: Bearer $API_KEY" \
+              "$FULL_URL" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "   Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "   ✅ SUCCESS with Bearer!"
+              echo "   Response: $(echo "$body" | head -c 200)..."
+              break 2
+            fi
+
+            # Method 2: API Key in header
+            echo "2. Testing X-API-Key header..."
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "X-API-Key: $API_KEY" \
+              "$FULL_URL" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "   Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "   ✅ SUCCESS with X-API-Key!"
+              echo "   Response: $(echo "$body" | head -c 200)..."
+              break 2
+            fi
+
+            # Method 3: Wakatime-style header
+            echo "3. Testing Authorization: Basic..."
+            AUTH_HEADER=$(echo -n "$API_KEY:" | base64)
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "Authorization: Basic $AUTH_HEADER" \
+              "$FULL_URL" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "   Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "   ✅ SUCCESS with Basic Auth!"
+              echo "   Response: $(echo "$body" | head -c 200)..."
+              break 2
+            fi
+
+            # Method 4: Query parameter
+            echo "4. Testing API key as query parameter..."
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              "$FULL_URL?api_key=$API_KEY" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "   Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "   ✅ SUCCESS with query parameter!"
+              echo "   Response: $(echo "$body" | head -c 200)..."
+              break 2
+            fi
+
+            # Method 5: Token query parameter
+            echo "5. Testing token as query parameter..."
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              "$FULL_URL?token=$API_KEY" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "   Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "   ✅ SUCCESS with token parameter!"
+              echo "   Response: $(echo "$body" | head -c 200)..."
+              break 2
+            fi
+
+            echo "   ❌ All methods failed for this endpoint"
+            echo ""
+          done
+
+          echo ""
+          echo "=== Testing Alternative Base URLs ==="
+
+          ALT_URLS=(
+            "https://waka.hackclub.com/api/compat/wakatime/v1"
+            "https://hackatime.hackclub.com/api/compat/wakatime/v1"
+            "https://hackatime.hackclub.com/api/v1"
+          )
+
+          for alt_url in "${ALT_URLS[@]}"; do
+            echo "Testing: $alt_url/users/current/stats/last_7_days"
+
+            # Try Bearer auth on alternative URLs
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "Authorization: Bearer $API_KEY" \
+              "$alt_url/users/current/stats/last_7_days" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "   Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "   ✅ SUCCESS with alternative URL!"
+              echo "   Working URL: $alt_url"
+              echo "   Response: $(echo "$body" | head -c 200)..."
+              break
+            fi
+          done
+
+          echo ""
+          echo "=== Test Complete ==="
