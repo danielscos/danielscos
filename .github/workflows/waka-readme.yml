@@ -13,14 +13,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: muesli/readme-scribe@master
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Install markscribe
+        run: go install github.com/charmbracelet/markscribe@latest
+
+      - name: Generate README
+        run: markscribe -write README.md README-working.md.tpl
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
-        with:
-          template: "README-working.md.tpl"
-          writeTo: "README.md"
 
       - name: Commit and push changes
         run: |
