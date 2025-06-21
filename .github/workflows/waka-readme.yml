@@ -19,7 +19,7 @@ jobs:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
         with:
-          template: "README-simple.md.tpl"
+          template: "README-working.md.tpl"
           writeTo: "README.md"
 
       - name: Commit and push changes
