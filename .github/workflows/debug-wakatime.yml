@@ -9,13 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: charmbracelet/readme-scribe@master
+      - uses: muesli/readme-scribe@master
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
         with:
-          template: "test-template.tpl"
+          template: "README-fallback.md.tpl"
           writeTo: "debug-output.md"
 
       - name: Show debug output
