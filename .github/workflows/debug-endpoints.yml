@@ -1,0 +1,121 @@
+name: Debug Hackatime Endpoints
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  debug-endpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Multiple Hackatime Endpoints
+        run: |
+          echo "=== Testing Different Hackatime API Endpoints ==="
+
+          API_KEY="${{ secrets.WAKATIME_API_KEY }}"
+          BASE_URL="https://hackatime.hackclub.com/api/hackatime/v1"
+
+          # Test different time periods
+          ENDPOINTS=(
+            "users/current/stats/last_7_days"
+            "users/current/stats/last_30_days"
+            "users/current/stats/last_6_months"
+            "users/current/stats/last_year"
+            "users/current/summaries?start=2025-06-14&end=2025-06-21"
+            "users/current/summaries?range=last_7_days"
+            "users/current/summaries?range=last_30_days"
+          )
+
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo ""
+            echo "=========================================="
+            echo "Testing: $BASE_URL/$endpoint"
+            echo "=========================================="
+
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "Authorization: Bearer $API_KEY" \
+              "$BASE_URL/$endpoint" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "Status: $http_status"
+
+            if [ "$http_status" = "200" ]; then
+              echo "✅ SUCCESS!"
+
+              # Extract key metrics
+              total_seconds=$(echo "$body" | jq -r '.data.total_seconds // empty' 2>/dev/null || echo "N/A")
+              human_total=$(echo "$body" | jq -r '.data.human_readable_total // empty' 2>/dev/null || echo "N/A")
+              start_date=$(echo "$body" | jq -r '.data.start // empty' 2>/dev/null || echo "N/A")
+              end_date=$(echo "$body" | jq -r '.data.end // empty' 2>/dev/null || echo "N/A")
+
+              echo "  Total Seconds: $total_seconds"
+              echo "  Human Total: $human_total"
+              echo "  Start: $start_date"
+              echo "  End: $end_date"
+
+              # Check for osint-news-channel project specifically
+              osint_data=$(echo "$body" | jq -r '.data.projects[]? | select(.name=="osint-news-channel") | "Name: \(.name), Seconds: \(.total_seconds), Time: \(.text), Percent: \(.percent)%"' 2>/dev/null || echo "Not found")
+              echo "  osint-news-channel: $osint_data"
+
+              # Show first few projects
+              echo "  Top 3 Projects:"
+              echo "$body" | jq -r '.data.projects[]? | "    \(.name): \(.text) (\(.total_seconds)s)"' 2>/dev/null | head -3 || echo "    No projects data"
+
+              # Check if this matches expected values
+              if [ "$endpoint" = "users/current/stats/last_7_days" ]; then
+                echo "  >>> THIS IS THE ENDPOINT WE'RE CURRENTLY USING <<<"
+                if echo "$osint_data" | grep -q "17280\|4h 48m\|4 hrs 48"; then
+                  echo "  🎯 FOUND MATCHING DATA FOR osint-news-channel!"
+                else
+                  echo "  ❌ Data doesn't match expected 4h 48m for osint-news-channel"
+                fi
+              fi
+
+            else
+              echo "❌ Failed with status $http_status"
+              if [ "$body" != "CURL_ERROR" ]; then
+                echo "  Error: $(echo "$body" | head -c 200)..."
+              fi
+            fi
+          done
+
+          echo ""
+          echo "=== Testing Different Date Ranges ==="
+
+          # Test specific date ranges
+          DATE_RANGES=(
+            "2025-06-14/2025-06-21"
+            "2025-06-15/2025-06-21"
+            "2025-06-13/2025-06-20"
+          )
+
+          for date_range in "${DATE_RANGES[@]}"; do
+            start_date=$(echo "$date_range" | cut -d'/' -f1)
+            end_date=$(echo "$date_range" | cut -d'/' -f2)
+
+            echo ""
+            echo "Testing range: $start_date to $end_date"
+
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "Authorization: Bearer $API_KEY" \
+              "$BASE_URL/users/current/summaries?start=$start_date&end=$end_date" 2>/dev/null || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            if [ "$http_status" = "200" ]; then
+              total_seconds=$(echo "$body" | jq -r '.data.total_seconds // empty' 2>/dev/null || echo "N/A")
+              echo "  Total for this range: $total_seconds seconds"
+              osint_data=$(echo "$body" | jq -r '.data.projects[]? | select(.name=="osint-news-channel") | "\(.text) (\(.total_seconds)s)"' 2>/dev/null || echo "Not found")
+              echo "  osint-news-channel: $osint_data"
+            else
+              echo "  ❌ Failed: $http_status"
+            fi
+          done
+
+          echo ""
+          echo "=== Summary ==="
+          echo "Look for the endpoint that shows osint-news-channel with ~17280 seconds (4h 48m)"
