@@ -19,8 +19,10 @@
 ⏱️ **Total coding time this week:** {{ wakatimeData.HumanReadableTotal }}
 
 ```text
-{{ wakatimeDoubleCategoryBar "💾 Languages:" wakatimeData.Languages "💼 Projects:" wakatimeData.Projects 5 }}
+{{ wakatimeDoubleCategoryBar "💾 Languages:" wakatimeData.Languages "💼 Projects:" wakatimeData.Projects 10 }}
 ```
+
+*Showing top 10 languages and all projects from total activity*
 
 ---
 
