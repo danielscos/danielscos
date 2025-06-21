@@ -1,0 +1,101 @@
+name: Test Hackatime Endpoints
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  test-endpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Hackatime API Endpoints
+        run: |
+          echo "=== Testing Hackatime API Endpoints ==="
+
+          # Test different base URLs and endpoints
+          ENDPOINTS=(
+            "https://hackatime.hackclub.com/api/v1"
+            "https://hackatime.hackclub.com/api/compat/wakatime/v1"
+            "https://waka.hackclub.com/api/compat/wakatime/v1"
+            "https://waka.hackclub.com/api/v1"
+            "https://hackatime.hackclub.com/api/wakatime/v1"
+            "https://hackatime.hackclub.com/api"
+          )
+
+          API_KEY="${{ secrets.WAKATIME_API_KEY }}"
+
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo ""
+            echo "Testing endpoint: $endpoint"
+            echo "=========================="
+
+            # Test the stats endpoint specifically
+            stats_url="$endpoint/users/current/stats/last_7_days"
+            echo "Testing: $stats_url"
+
+            response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+              -H "Authorization: Bearer $API_KEY" \
+              "$stats_url" || echo "CURL_ERROR")
+
+            http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+            body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+
+            echo "Status: $http_status"
+            if [ "$http_status" = "200" ]; then
+              echo "✅ SUCCESS! This endpoint works!"
+              echo "Response preview: $(echo "$body" | head -c 200)..."
+              echo ""
+              echo "🎉 WORKING ENDPOINT FOUND: $endpoint"
+              break
+            elif [ "$http_status" = "401" ]; then
+              echo "❌ 401 Unauthorized - API key issue"
+            elif [ "$http_status" = "404" ]; then
+              echo "❌ 404 Not Found - endpoint doesn't exist"
+            else
+              echo "❌ Error $http_status or connection failed"
+              if [ "$response" = "CURL_ERROR" ]; then
+                echo "   Connection error occurred"
+              fi
+            fi
+          done
+
+          echo ""
+          echo "=== Test Complete ==="
+
+      - name: Test Alternative Method
+        run: |
+          echo ""
+          echo "=== Testing Alternative API Discovery ==="
+
+          # Try to discover the API structure
+          BASE_URLS=(
+            "https://hackatime.hackclub.com"
+            "https://waka.hackclub.com"
+          )
+
+          for base_url in "${BASE_URLS[@]}"; do
+            echo ""
+            echo "Testing base: $base_url"
+            echo "===================="
+
+            # Try common API discovery endpoints
+            for path in "/.well-known/api" "/api" "/api/v1" ""; do
+              test_url="$base_url$path"
+              echo "Trying: $test_url"
+
+              response=$(curl -s -w "HTTP_STATUS:%{http_code}" \
+                -H "Authorization: Bearer ${{ secrets.WAKATIME_API_KEY }}" \
+                "$test_url" 2>/dev/null || echo "CURL_ERROR")
+
+              http_status=$(echo "$response" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+
+              if [ "$http_status" = "200" ] || [ "$http_status" = "302" ]; then
+                echo "✅ $http_status - Endpoint exists!"
+                body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//')
+                echo "Preview: $(echo "$body" | head -c 100)..."
+              else
+                echo "❌ $http_status"
+              fi
+            done
+          done
