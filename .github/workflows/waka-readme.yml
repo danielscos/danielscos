@@ -25,6 +25,7 @@ jobs:
           cd markscribe
           go build -o ../markscribe-bin .
           cd ..
+          rm -rf markscribe
           ls -la markscribe-bin
           chmod +x markscribe-bin
           ./markscribe-bin --help || echo "Binary created successfully"
@@ -65,12 +66,15 @@ jobs:
           ./markscribe-bin -write README.md README.md.tpl || echo "README generation failed - check API test results above"
 
       - name: Commit & Push changes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "📊 Update README with latest stats"
-          branch: main
-          commit_user_name: markscribe-bot 🤖
-          commit_user_email: actions@github.com
-          commit_author: markscribe-bot 🤖 <actions@github.com>
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "markscribe-bot 🤖"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📊 Update README with latest stats"
+            git push
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
