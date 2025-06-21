@@ -77,33 +77,72 @@ def create_progress_bar(percent, length=25):
     filled = int(length * percent / 100)
     return '█' * filled + '░' * (length - filled)
 
-def generate_double_category_bar(languages, projects, count=None):
-    # Show ALL languages and projects to debug totals
-    content = "💾 Languages (ALL):\n"
-    lang_total_seconds = 0
-    for i, lang in enumerate(languages):
+def merge_duplicates(items):
+    """Merge duplicate languages/projects by normalizing names"""
+    merged = {}
+    for item in items:
+        # Normalize name (title case, handle common duplicates)
+        name = item['name'].strip()
+        normalized_name = name.title()
+
+        # Handle specific cases
+        if normalized_name.lower() in ['javascript', 'js']:
+            normalized_name = 'JavaScript'
+        elif normalized_name.lower() in ['python']:
+            normalized_name = 'Python'
+        elif normalized_name.lower() in ['json', 'jsonc']:
+            normalized_name = 'JSON'
+        elif normalized_name.lower() in ['html']:
+            normalized_name = 'HTML'
+        elif normalized_name.lower() in ['css']:
+            normalized_name = 'CSS'
+        elif normalized_name.lower() in ['rust']:
+            normalized_name = 'Rust'
+        elif normalized_name.lower() in ['markdown']:
+            normalized_name = 'Markdown'
+
+        if normalized_name in merged:
+            # Merge the times
+            merged[normalized_name]['total_seconds'] += item.get('total_seconds', 0)
+        else:
+            merged[normalized_name] = {
+                'name': normalized_name,
+                'total_seconds': item.get('total_seconds', 0)
+            }
+
+    # Convert back to list and sort by time
+    result = list(merged.values())
+    result.sort(key=lambda x: x['total_seconds'], reverse=True)
+    return result
+
+def generate_double_category_bar(languages, projects, count=5):
+    # Merge duplicates first
+    merged_languages = merge_duplicates(languages)
+    merged_projects = merge_duplicates(projects)
+
+    # Calculate actual totals
+    lang_total_seconds = sum(lang['total_seconds'] for lang in merged_languages)
+    proj_total_seconds = sum(proj['total_seconds'] for proj in merged_projects)
+
+    content = "💾 Languages:\n"
+    for i, lang in enumerate(merged_languages[:count]):
         name = lang['name']
-        time_text = lang['text']
-        percent = lang['percent']
-        seconds = lang.get('total_seconds', 0)
-        lang_total_seconds += seconds
+        seconds = lang['total_seconds']
+        time_text = format_time(seconds)
+        # Calculate correct percentage based on actual total
+        percent = (seconds / lang_total_seconds * 100) if lang_total_seconds > 0 else 0
         bar = create_progress_bar(percent)
-        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}% ({seconds}s)\n"
+        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}%\n"
 
-    content += f"\nLanguages Total: {format_time(lang_total_seconds)} ({lang_total_seconds} seconds)\n"
-
-    content += "\n💼 Projects (ALL):\n"
-    proj_total_seconds = 0
-    for i, proj in enumerate(projects):
+    content += "\n💼 Projects:\n"
+    for i, proj in enumerate(merged_projects[:count]):
         name = proj['name']
-        time_text = proj['text']
-        percent = proj['percent']
-        seconds = proj.get('total_seconds', 0)
-        proj_total_seconds += seconds
+        seconds = proj['total_seconds']
+        time_text = format_time(seconds)
+        # Calculate correct percentage based on actual total
+        percent = (seconds / proj_total_seconds * 100) if proj_total_seconds > 0 else 0
         bar = create_progress_bar(percent)
-        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}% ({seconds}s)\n"
-
-    content += f"\nProjects Total: {format_time(proj_total_seconds)} ({proj_total_seconds} seconds)\n"
+        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}%\n"
 
     return content
 
@@ -136,8 +175,13 @@ def update_readme():
         proj_sum = sum(proj.get('total_seconds', 0) for proj in projects)
         print(f"Projects sum: {format_time(proj_sum)} ({proj_sum} seconds)")
 
-    # Generate the double category bar (show ALL items)
-    stats_content = generate_double_category_bar(languages, projects)
+    # Use the actual language total as the real total time
+    actual_total_seconds = sum(lang.get('total_seconds', 0) for lang in languages)
+    actual_total_time = format_time(actual_total_seconds)
+    print(f"Using corrected total: {actual_total_time} ({actual_total_seconds} seconds)")
+
+    # Generate the double category bar (top 5 items, fixed percentages)
+    stats_content = generate_double_category_bar(languages, projects, 5)
 
     # Create the full README content
     readme_content = f"""# Hi there, I'm Daniel 👋
@@ -158,7 +202,7 @@ def update_readme():
 
 [![Hackatime](https://img.shields.io/badge/Hackatime-Hack%20Club-orange?style=for-the-badge&logo=wakatime&logoColor=white)](https://hackatime.hackclub.com)
 
-⏱️ **Total coding time this week:** {total_time}
+⏱️ **Total coding time this week:** {actual_total_time}
 
 ```text
 {stats_content}
