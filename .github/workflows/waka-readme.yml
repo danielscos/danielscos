@@ -34,7 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
-          WAKATIME_URL: "https://waka.hackclub.com/api/compat/wakatime/v1"
+          WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
 
       - name: Commit and push changes
         run: |
