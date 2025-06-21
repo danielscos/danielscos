@@ -2,7 +2,7 @@ name: Update README
 
 on:
   schedule:
-    - cron: "0 0,12 * * *" # Every 12 hours (midnight and noon UTC)
+    - cron: "0 0 * * *" # Daily at midnight UTC
   workflow_dispatch: # Allow manual trigger
   push:
     branches: [main]
