@@ -33,20 +33,21 @@ jobs:
         env:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
         run: |
-          echo "Testing different Hackatime API endpoints..."
+          echo "Testing different Hackatime API endpoints and auth methods..."
           echo "API Key: ${WAKATIME_API_KEY:0:8}..."
 
-          # Test base API
-          echo "Testing: https://hackatime.hackclub.com/api"
-          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api" || echo "Failed"
+          # Test different authentication methods
+          echo "=== Testing Bearer Token ==="
+          curl -v -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "Bearer Failed"
 
-          # Test hackatime endpoint
-          echo "Testing: https://hackatime.hackclub.com/api/hackatime/v1"
-          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/hackatime/v1" || echo "Failed"
+          echo "=== Testing Basic Auth ==="
+          curl -v -u "$WAKATIME_API_KEY:" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "Basic Failed"
 
-          # Test stats endpoint
-          echo "Testing: https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days"
-          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "Failed"
+          echo "=== Testing API Key Header ==="
+          curl -v -H "X-API-Key: $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "API Key Header Failed"
+
+          echo "=== Testing WakaTime Style Auth ==="
+          curl -v -H "Authorization: Basic $(echo -n $WAKATIME_API_KEY: | base64)" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "WakaTime Style Failed"
 
       - name: Generate README
         env:
