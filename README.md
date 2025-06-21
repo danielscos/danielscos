@@ -1,34 +1,72 @@
-# Hi there, I'm Daniel 👋
+# Hackatime Data Structure Debug
 
-## A silly Italian compooters guy :3
+## Raw Data Inspection
 
-# 🚀 Tech Stack
+### Basic Info Check
 
-[![Python](https://img.shields.io/badge/Python-3.13%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Rust](https://img.shields.io/badge/Rust-1.87%2B-black?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0%2B-green?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-19.1.0%2B-blue?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
-[![Electron](https://img.shields.io/badge/Electron-36.2.0%2B-dark?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
+✅ wakatimeData is available
+
+
+### Total Time Debug
+- HumanReadableTotal: "0 hrs 0 mins"
+- TotalSeconds: 0
+- DailyAverage: 0
+- Status: "ok"
+- Username: "U08SFNJ2CTS"
+- UserID: "U08SFNJ2CTS"
+
+### Time Range
+- Start: "2025-06-14T09:08:06.559743826+03:00"
+- End: "2025-06-21T09:08:06.611345905+03:00"
+- Range: "last_7_days"
+- HumanReadableRange: "Last 7 Days"
+
+### Languages Array Debug
+Languages count: 0
+
+Languages: EMPTY or NULL
+
+
+### Projects Array Debug
+Projects count: 0
+
+Projects: EMPTY or NULL
+
+
+### Categories Debug
+Categories count: 0
+
+Categories: EMPTY or NULL
+
+
+### Editors Debug
+Editors count: 0
+
+Editors: EMPTY or NULL
+
+
+### Operating Systems Debug
+OS count: 0
+
+Operating Systems: EMPTY or NULL
+
+
+### Best Day Debug
+
+Best Day:
+  - Date: ""
+  - Text: ""
+  - TotalSeconds: 0
+
+
+### Flags and Status
+- IsUpToDate: false
+- IsAlreadyUpdating: false
+- IsCodingActivityVisible: false
+- PercentCalculated: 0
+- DaysIncludingHolidays: 7
+- DaysMinusHolidays: 0
+- Holidays: 0
 
 ---
-
-## 📊 Coding Stats
-
-[![Hackatime](https://img.shields.io/badge/Hackatime-Hack%20Club-orange?style=for-the-badge&logo=wakatime&logoColor=white)](https://hackatime.hackclub.com)
-
-⏱️ **Total coding time this week:** 0 hrs 0 mins
-
-```text
-💾 Languages:
-
-💼 Projects:
-```
-
----
-
-## Info
-[![About Me](https://img.shields.io/badge/About--Me-black?style=for-the-badge&logo=numpy&logoColor=white)](https://danielscos.github.io/about_me)
-
----
-
-> "Code is like humor. When you have to explain it, it's bad." – Cory House
+Debug complete - check all sections above for data availability
