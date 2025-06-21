@@ -40,19 +40,19 @@ jobs:
           echo "Testing: https://hackatime.hackclub.com/api"
           curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api" || echo "Failed"
 
-          # Test wakatime compat endpoint
-          echo "Testing: https://hackatime.hackclub.com/api/compat/wakatime/v1"
-          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/compat/wakatime/v1" || echo "Failed"
+          # Test hackatime endpoint
+          echo "Testing: https://hackatime.hackclub.com/api/hackatime/v1"
+          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/hackatime/v1" || echo "Failed"
 
           # Test stats endpoint
-          echo "Testing: https://hackatime.hackclub.com/api/compat/wakatime/v1/users/current/stats/last_7_days"
-          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/compat/wakatime/v1/users/current/stats/last_7_days" || echo "Failed"
+          echo "Testing: https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days"
+          curl -H "Authorization: Bearer $WAKATIME_API_KEY" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "Failed"
 
       - name: Generate README
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
-          WAKATIME_URL: "https://hackatime.hackclub.com/api/compat/wakatime/v1"
+          WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
         run: |
           ls -la markscribe-bin
           ./markscribe-bin -write README.md README.md.tpl
