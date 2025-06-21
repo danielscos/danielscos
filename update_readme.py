@@ -2,10 +2,20 @@
 import requests
 import os
 import json
+import logging
+from datetime import datetime
 
 def fetch_hackatime_data():
+    # Set up logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+
+    logger.info("🚀 Starting Hackatime data fetch...")
+    logger.info(f"📅 Current time: {datetime.now().isoformat()}")
+
     api_key = os.environ.get('WAKATIME_API_KEY')
     if not api_key:
+        logger.error("❌ WAKATIME_API_KEY environment variable not found")
         print("WAKATIME_API_KEY environment variable not found")
         return None
 
@@ -29,10 +39,16 @@ def fetch_hackatime_data():
 
             if response.status_code == 200:
                 data = response.json()
+                logger.info(f"✅ Success! Got data from: {endpoint}")
                 print(f"✅ Success! Got data from: {endpoint}")
                 print(f"Raw response keys: {list(data.keys())}")
                 if 'data' in data:
                     stats = data['data']
+                    logger.info(f"📊 Stats keys: {list(stats.keys())}")
+                    logger.info(f"⏱️ Total time: {stats.get('human_readable_total', 'N/A')}")
+                    logger.info(f"💻 Languages count: {len(stats.get('languages', []))}")
+                    logger.info(f"📁 Projects count: {len(stats.get('projects', []))}")
+
                     print(f"Stats keys: {list(stats.keys())}")
                     print(f"Total time: {stats.get('human_readable_total', 'N/A')}")
                     print(f"Languages count: {len(stats.get('languages', []))}")
@@ -80,30 +96,46 @@ def create_progress_bar(percent, length=25):
 def merge_duplicates(items):
     """Merge duplicate languages/projects by normalizing names"""
     merged = {}
+    logger = logging.getLogger(__name__)
+
     for item in items:
         # Normalize name (title case, handle common duplicates)
         name = item['name'].strip()
+        original_name = name
         normalized_name = name.title()
 
-        # Handle specific cases
-        if normalized_name.lower() in ['javascript', 'js']:
-            normalized_name = 'JavaScript'
-        elif normalized_name.lower() in ['python']:
+        # Handle specific cases with more comprehensive mapping
+        name_lower = normalized_name.lower()
+        if name_lower in ['javascript', 'js', 'jsx', 'typescript', 'ts']:
+            if 'jsx' in name_lower or 'tsx' in name_lower:
+                normalized_name = 'JSX/TSX'
+            elif 'typescript' in name_lower or 'ts' == name_lower:
+                normalized_name = 'TypeScript'
+            else:
+                normalized_name = 'JavaScript'
+        elif name_lower in ['python', 'py']:
             normalized_name = 'Python'
-        elif normalized_name.lower() in ['json', 'jsonc']:
+        elif name_lower in ['json', 'jsonc', 'json5']:
             normalized_name = 'JSON'
-        elif normalized_name.lower() in ['html']:
+        elif name_lower in ['html', 'htm']:
             normalized_name = 'HTML'
-        elif normalized_name.lower() in ['css']:
+        elif name_lower in ['css', 'scss', 'sass', 'less']:
             normalized_name = 'CSS'
-        elif normalized_name.lower() in ['rust']:
+        elif name_lower in ['rust', 'rs']:
             normalized_name = 'Rust'
-        elif normalized_name.lower() in ['markdown']:
+        elif name_lower in ['markdown', 'md']:
             normalized_name = 'Markdown'
+        elif name_lower in ['yaml', 'yml']:
+            normalized_name = 'YAML'
+        elif name_lower in ['bash', 'sh', 'zsh', 'fish']:
+            normalized_name = 'Shell'
+        elif name_lower in ['unknown', '']:
+            normalized_name = 'Unknown'
 
         if normalized_name in merged:
             # Merge the times
             merged[normalized_name]['total_seconds'] += item.get('total_seconds', 0)
+            logger.debug(f"🔄 Merged {original_name} into {normalized_name}")
         else:
             merged[normalized_name] = {
                 'name': normalized_name,
@@ -113,6 +145,8 @@ def merge_duplicates(items):
     # Convert back to list and sort by time
     result = list(merged.values())
     result.sort(key=lambda x: x['total_seconds'], reverse=True)
+
+    logger.info(f"📊 Merged {len(items)} items into {len(result)} unique items")
     return result
 
 def generate_double_category_bar(languages, projects, count=5):
@@ -147,8 +181,12 @@ def generate_double_category_bar(languages, projects, count=5):
     return content
 
 def update_readme():
+    logger = logging.getLogger(__name__)
+    logger.info("🔄 Starting README update process...")
+
     data = fetch_hackatime_data()
     if not data:
+        logger.error("❌ Failed to fetch Hackatime data")
         print("Failed to fetch Hackatime data")
         return
 
@@ -161,23 +199,28 @@ def update_readme():
     languages = stats.get('languages', [])
     projects = stats.get('projects', [])
 
+    logger.info(f"📊 Processing {len(languages)} languages and {len(projects)} projects")
     print(f"Processing {len(languages)} languages and {len(projects)} projects")
 
     # Calculate actual totals from the data
     total_seconds_from_api = stats.get('total_seconds', 0)
+    logger.info(f"⏱️ API claims total: {total_time} ({total_seconds_from_api} seconds)")
     print(f"API claims total: {total_time} ({total_seconds_from_api} seconds)")
 
     if languages:
         lang_sum = sum(lang.get('total_seconds', 0) for lang in languages)
+        logger.info(f"💻 Languages sum: {format_time(lang_sum)} ({lang_sum} seconds)")
         print(f"Languages sum: {format_time(lang_sum)} ({lang_sum} seconds)")
 
     if projects:
         proj_sum = sum(proj.get('total_seconds', 0) for proj in projects)
+        logger.info(f"📁 Projects sum: {format_time(proj_sum)} ({proj_sum} seconds)")
         print(f"Projects sum: {format_time(proj_sum)} ({proj_sum} seconds)")
 
     # Use the actual language total as the real total time
     actual_total_seconds = sum(lang.get('total_seconds', 0) for lang in languages)
     actual_total_time = format_time(actual_total_seconds)
+    logger.info(f"✅ Using corrected total: {actual_total_time} ({actual_total_seconds} seconds)")
     print(f"Using corrected total: {actual_total_time} ({actual_total_seconds} seconds)")
 
     # Generate the double category bar (top 5 items, fixed percentages)
@@ -217,13 +260,36 @@ def update_readme():
 
 > "Code is like humor. When you have to explain it, it's bad." – Cory House"""
 
+    # Add verification timestamp to README
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+    readme_content += f"\n\n<!-- Last updated: {timestamp} -->"
+
     with open('README.md', 'w') as f:
         f.write(readme_content)
 
+    logger.info("✅ README updated successfully!")
+    logger.info(f"📊 Summary - Total: {actual_total_time}, Languages: {len(languages)}, Projects: {len(projects)}")
+    logger.info(f"🕐 Update completed at: {timestamp}")
+
     print("README updated successfully!")
-    print(f"Total time: {total_time}")
+    print(f"Total time: {actual_total_time}")
     print(f"Languages: {len(languages)}")
     print(f"Projects: {len(projects)}")
+    print(f"Last updated: {timestamp}")
+
+    # Verify the file was actually written
+    try:
+        with open('README.md', 'r') as f:
+            content = f.read()
+            if timestamp in content:
+                logger.info("✅ Verification: Timestamp found in README - update confirmed!")
+                print("✅ Verification: README update confirmed!")
+            else:
+                logger.warning("⚠️ Verification: Timestamp not found in README")
+                print("⚠️ Warning: Could not verify README update")
+    except Exception as e:
+        logger.error(f"❌ Verification failed: {e}")
+        print(f"❌ Verification failed: {e}")
 
 if __name__ == "__main__":
     update_readme()
