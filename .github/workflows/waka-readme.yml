@@ -23,7 +23,11 @@ jobs:
         run: |
           git clone https://github.com/taciturnaxolotl/markscribe.git
           cd markscribe
-          go build -o ../markscribe .
+          go build -o ../markscribe-bin .
+          cd ..
+          ls -la markscribe-bin
+          chmod +x markscribe-bin
+          ./markscribe-bin --help || echo "Binary created successfully"
 
       - name: Generate README
         env:
@@ -31,7 +35,8 @@ jobs:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/compat/wakatime/v1"
         run: |
-          ./markscribe -write README.md README.md.tpl
+          ls -la markscribe-bin
+          ./markscribe-bin -write README.md README.md.tpl
 
       - name: Commit & Push changes
         uses: stefanzweifel/git-auto-commit-action@v4
