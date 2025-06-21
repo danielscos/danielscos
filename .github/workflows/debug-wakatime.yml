@@ -1,0 +1,31 @@
+name: Debug Wakatime
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  debug-wakatime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: charmbracelet/readme-scribe@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+          WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
+        with:
+          template: "test-template.tpl"
+          writeTo: "debug-output.md"
+
+      - name: Show debug output
+        run: |
+          echo "=== Debug Output ==="
+          cat debug-output.md
+          echo "=== End Debug Output ==="
+
+      - name: Upload debug output
+        uses: actions/upload-artifact@v3
+        with:
+          name: wakatime-debug-output
+          path: debug-output.md
