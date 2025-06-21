@@ -18,11 +18,15 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Install markscribe
-        run: go install github.com/charmbracelet/markscribe@latest
+      - name: Install markscribe from taciturnaxolotl fork
+        run: |
+          git clone https://github.com/taciturnaxolotl/markscribe.git
+          cd markscribe
+          go build -o markscribe .
+          sudo mv markscribe /usr/local/bin/
 
       - name: Generate README
-        run: markscribe -write README.md test-minimal.tpl
+        run: markscribe -write README.md README.md.tpl
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
