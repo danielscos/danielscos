@@ -14,23 +14,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update README
-        uses: muesli/readme-scribe@master
+      - name: Download Markscribe
+        run: |
+          wget -O markscribe https://github.com/taciturnaxolotl/markscribe/releases/latest/download/markscribe_linux_amd64
+          chmod +x markscribe
+
+      - name: Generate README
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/compat/wakatime/v1"
-        with:
-          template: "README.md.tpl"
-          writeTo: "README.md"
+        run: |
+          ./markscribe -write README.md README.md.tpl
 
       - name: Commit & Push changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "📊 Update README with latest stats"
           branch: main
-          commit_user_name: readme-scribe 🤖
+          commit_user_name: markscribe-bot 🤖
           commit_user_email: actions@github.com
-          commit_author: readme-scribe 🤖 <actions@github.com>
+          commit_author: markscribe-bot 🤖 <actions@github.com>
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
