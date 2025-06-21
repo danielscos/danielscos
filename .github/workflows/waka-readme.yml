@@ -49,14 +49,20 @@ jobs:
           echo "=== Testing WakaTime Style Auth ==="
           curl -v -H "Authorization: Basic $(echo -n $WAKATIME_API_KEY: | base64)" "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" || echo "WakaTime Style Failed"
 
-      - name: Generate README
+          echo "=== API Testing Complete ==="
+          echo "Please check the output above to see which authentication method works!"
+          echo "If any method returns 200 OK, we can proceed with README generation."
+
+      - name: Generate README (will likely fail until API auth is fixed)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
         run: |
+          echo "Attempting to generate README..."
           ls -la markscribe-bin
-          ./markscribe-bin -write README.md README.md.tpl
+          ./markscribe-bin -write README.md README.md.tpl || echo "README generation failed - check API test results above"
 
       - name: Commit & Push changes
         uses: stefanzweifel/git-auto-commit-action@v4
