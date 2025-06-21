@@ -31,6 +31,7 @@ jobs:
           ./markscribe-bin --help || echo "Binary created successfully"
 
       - name: Test Hackatime API endpoints
+        continue-on-error: true
         env:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
         run: |
@@ -69,12 +70,11 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "markscribe-bot 🤖"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
           git add README.md
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
             git commit -m "📊 Update README with latest stats"
-            git push
+            git push origin main
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
