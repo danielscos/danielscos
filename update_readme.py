@@ -14,20 +14,54 @@ def fetch_hackatime_data():
         'Content-Type': 'application/json'
     }
 
-    try:
-        response = requests.get(
-            'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days',
-            headers=headers,
-            timeout=10
-        )
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"API returned status {response.status_code}: {response.text}")
-            return None
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-        return None
+    # Try different time periods
+    endpoints = [
+        'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days',
+        'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_30_days',
+        'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_6_months',
+        'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_year'
+    ]
+
+    for endpoint in endpoints:
+        try:
+            print(f"Trying endpoint: {endpoint}")
+            response = requests.get(endpoint, headers=headers, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                print(f"✅ Success! Got data from: {endpoint}")
+                print(f"Raw response keys: {list(data.keys())}")
+                if 'data' in data:
+                    stats = data['data']
+                    print(f"Stats keys: {list(stats.keys())}")
+                    print(f"Total time: {stats.get('human_readable_total', 'N/A')}")
+                    print(f"Languages count: {len(stats.get('languages', []))}")
+                    print(f"Projects count: {len(stats.get('projects', []))}")
+
+                    # Show first few languages and projects for debugging
+                    languages = stats.get('languages', [])
+                    projects = stats.get('projects', [])
+
+                    if languages:
+                        print("First 3 languages:")
+                        for i, lang in enumerate(languages[:3]):
+                            print(f"  {i+1}. {lang.get('name', 'Unknown')}: {lang.get('text', 'N/A')} ({lang.get('percent', 0):.1f}%)")
+
+                    if projects:
+                        print("First 3 projects:")
+                        for i, proj in enumerate(projects[:3]):
+                            print(f"  {i+1}. {proj.get('name', 'Unknown')}: {proj.get('text', 'N/A')} ({proj.get('percent', 0):.1f}%)")
+
+                return data
+            else:
+                print(f"❌ {endpoint} returned {response.status_code}: {response.text}")
+
+        except Exception as e:
+            print(f"❌ Error with {endpoint}: {e}")
+            continue
+
+    print("All endpoints failed")
+    return None
 
 def format_time(seconds):
     if seconds < 3600:
@@ -68,10 +102,16 @@ def update_readme():
         print("Failed to fetch Hackatime data")
         return
 
+    print("\n=== DEBUG: Full API Response ===")
+    print(json.dumps(data, indent=2))
+    print("=== END DEBUG ===\n")
+
     stats = data.get('data', {})
     total_time = stats.get('human_readable_total', 'N/A')
     languages = stats.get('languages', [])
     projects = stats.get('projects', [])
+
+    print(f"Processing {len(languages)} languages and {len(projects)} projects")
 
     # Generate the double category bar
     stats_content = generate_double_category_bar(languages, projects, 5)
