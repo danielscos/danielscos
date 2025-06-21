@@ -77,22 +77,33 @@ def create_progress_bar(percent, length=25):
     filled = int(length * percent / 100)
     return '█' * filled + '░' * (length - filled)
 
-def generate_double_category_bar(languages, projects, count=5):
-    content = "💾 Languages:\n"
-    for lang in languages[:count]:
+def generate_double_category_bar(languages, projects, count=None):
+    # Show ALL languages and projects to debug totals
+    content = "💾 Languages (ALL):\n"
+    lang_total_seconds = 0
+    for i, lang in enumerate(languages):
         name = lang['name']
         time_text = lang['text']
         percent = lang['percent']
+        seconds = lang.get('total_seconds', 0)
+        lang_total_seconds += seconds
         bar = create_progress_bar(percent)
-        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}%\n"
+        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}% ({seconds}s)\n"
 
-    content += "\n💼 Projects:\n"
-    for proj in projects[:count]:
+    content += f"\nLanguages Total: {format_time(lang_total_seconds)} ({lang_total_seconds} seconds)\n"
+
+    content += "\n💼 Projects (ALL):\n"
+    proj_total_seconds = 0
+    for i, proj in enumerate(projects):
         name = proj['name']
         time_text = proj['text']
         percent = proj['percent']
+        seconds = proj.get('total_seconds', 0)
+        proj_total_seconds += seconds
         bar = create_progress_bar(percent)
-        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}%\n"
+        content += f"{name:<12} {time_text:>12}  {bar}  {percent:.1f}% ({seconds}s)\n"
+
+    content += f"\nProjects Total: {format_time(proj_total_seconds)} ({proj_total_seconds} seconds)\n"
 
     return content
 
@@ -113,8 +124,20 @@ def update_readme():
 
     print(f"Processing {len(languages)} languages and {len(projects)} projects")
 
-    # Generate the double category bar
-    stats_content = generate_double_category_bar(languages, projects, 5)
+    # Calculate actual totals from the data
+    total_seconds_from_api = stats.get('total_seconds', 0)
+    print(f"API claims total: {total_time} ({total_seconds_from_api} seconds)")
+
+    if languages:
+        lang_sum = sum(lang.get('total_seconds', 0) for lang in languages)
+        print(f"Languages sum: {format_time(lang_sum)} ({lang_sum} seconds)")
+
+    if projects:
+        proj_sum = sum(proj.get('total_seconds', 0) for proj in projects)
+        print(f"Projects sum: {format_time(proj_sum)} ({proj_sum} seconds)")
+
+    # Generate the double category bar (show ALL items)
+    stats_content = generate_double_category_bar(languages, projects)
 
     # Create the full README content
     readme_content = f"""# Hi there, I'm Daniel 👋
