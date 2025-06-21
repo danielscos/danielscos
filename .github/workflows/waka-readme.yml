@@ -30,7 +30,7 @@ jobs:
           sudo mv markscribe /usr/local/bin/
 
       - name: Generate README
-        run: markscribe -write README.md README.md.tpl
+        run: markscribe -write README.md debug-data.tpl
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
