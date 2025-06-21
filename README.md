@@ -16,7 +16,7 @@
 
 [![Hackatime](https://img.shields.io/badge/Hackatime-Hack%20Club-orange?style=for-the-badge&logo=wakatime&logoColor=white)](https://hackatime.hackclub.com)
 
-⏱️ **Total coding time this week:** 11 hrs 9 mins
+⏱️ **Total coding time this week:** 11 hrs 13 mins
 
 ```text
 💾 Languages:
@@ -32,11 +32,11 @@ python               6m 10s       █░░░░░░░░░░░░░░�
 Smarty               6m 2s        █░░░░░░░░░░░░░░░░░░░░░░░░  1.76%
 
 💼 Projects:
-osint-news-channel   2h 22m 56s   ███████████░░░░░░░░░░░░░░  43.30%
-CyberSafe            1h 50m 18s   █████████░░░░░░░░░░░░░░░░  33.42%
-danielscos           1h 5m 56s    █████░░░░░░░░░░░░░░░░░░░░  19.98%
-unknown              8m 54s       █░░░░░░░░░░░░░░░░░░░░░░░░  2.70%
-unknown              2m 0s        █░░░░░░░░░░░░░░░░░░░░░░░░  0.61%
+osint-news-channel   2h 22m 56s   ███████████░░░░░░░░░░░░░░  43.23%
+CyberSafe            1h 50m 18s   █████████░░░░░░░░░░░░░░░░  33.36%
+danielscos           1h 6m 28s    ██████░░░░░░░░░░░░░░░░░░░  20.10%
+unknown              8m 54s       █░░░░░░░░░░░░░░░░░░░░░░░░  2.69%
+unknown              2m 0s        █░░░░░░░░░░░░░░░░░░░░░░░░  0.60%
 ```
 
 **📝 Note:** *Due to Hackatime API data sync limitations, individual project times may not reflect the complete activity shown in the dashboard. The total time above represents the most accurate measurement.*
