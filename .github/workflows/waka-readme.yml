@@ -18,22 +18,23 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Install markscribe from taciturnaxolotl fork
+      - name: Install and patch markscribe for Hackatime Bearer auth
         run: |
           git clone https://github.com/taciturnaxolotl/markscribe.git
           cd markscribe
+
+          # Patch wakatime.go to use Bearer auth instead of Basic auth
+          sed -i 's/req\.Header\.Set("Authorization", fmt\.Sprintf("Basic %s", wakatimeClient\.apikey))/req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", wakatimeClient.apikey))/' wakatime.go
+
           go build -o markscribe .
           sudo mv markscribe /usr/local/bin/
 
       - name: Generate README
-        run: |
-          # Encode API key for Basic auth (API_KEY:)
-          ENCODED_KEY=$(echo -n "${{ secrets.WAKATIME_API_KEY }}:" | base64)
-          export WAKATIME_API_KEY="$ENCODED_KEY"
-          markscribe -write README.md README.md.tpl
+        run: markscribe -write README.md README.md.tpl
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
+          WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+          WAKATIME_URL: "https://waka.hackclub.com/api/compat/wakatime/v1"
 
       - name: Commit and push changes
         run: |
