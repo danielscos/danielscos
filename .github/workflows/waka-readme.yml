@@ -1,81 +1,32 @@
-name: Update README with Hackatime Stats
+name: Update README
 
 on:
+  schedule:
+    - cron: "0 0 * * *" # Daily at midnight UTC
+  workflow_dispatch: # Allow manual trigger
   push:
     branches: [main]
-  schedule:
-    # Daily at midnight UTC - change this line to modify schedule:
-    - cron: "0 0 * * *" # Daily at midnight UTC (ACTIVE)
-    # - cron: "0 */6 * * *"   # Every 6 hours
-    # - cron: "0 0,12 * * *"  # Twice daily (midnight & noon UTC)
-    # - cron: "0 0 * * 1"     # Weekly on Mondays
-    # - cron: "0 */3 * * *"   # Every 3 hours
-    # - cron: "0 9 * * *"     # Daily at 9 AM UTC
-  workflow_dispatch: # Manual trigger - go to Actions tab and click "Run workflow"
 
 jobs:
-  update-hackatime-stats:
+  markscribe:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-
-      - name: Install Python dependencies
-        run: |
-          pip install requests
-
-      - name: Generate README with Hackatime data
+      - uses: muesli/readme-scribe@master
         env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+          WAKATIME_URL: "https://hackatime.hackclub.com/api/hackatime/v1"
+        with:
+          template: "README.md.tpl"
+          writeTo: "README.md"
+
+      - name: Commit and push changes
         run: |
-          echo "🚀 Starting Hackatime stats update..."
-          echo "⏰ Current time: $(date)"
-          echo "🔑 API Key present: $([ -n "$WAKATIME_API_KEY" ] && echo "✅ Yes" || echo "❌ No")"
-          python3 update_readme.py
-          echo "✅ README generation completed!"
-
-      - name: Verify and commit changes
-        run: |
-          echo "🔍 Checking for README changes..."
-          git config --local user.email "actions@github.com"
-          git config --local user.name "hackatime-bot 🤖"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-
-          # Check if README was actually updated
-          if [ -f README.md ]; then
-            echo "✅ README.md exists"
-            if grep -q "Last updated:" README.md; then
-              echo "✅ README contains timestamp - update successful!"
-            else
-              echo "⚠️ README might not have been updated properly"
-            fi
-          else
-            echo "❌ README.md not found!"
-            exit 1
-          fi
-
+          git config --local user.email "action@github.com"
+          git config --local user.name "readme-scribe"
           git add README.md
-          if git diff --staged --quiet; then
-            echo "📝 No changes to commit - stats are up to date"
-          else
-            echo "📊 Changes detected - committing update..."
-            git commit -m "📊 Update README with latest Hackatime stats [$(date +'%Y-%m-%d %H:%M UTC')]"
-            git push origin main
-            echo "✅ Successfully pushed updated README!"
-          fi
-
-      - name: Workflow completion summary
-        if: always()
-        run: |
-          echo "🎯 Workflow Summary:"
-          echo "⏰ Completed at: $(date)"
-          echo "🔄 Next scheduled run: Tomorrow at midnight UTC"
-          echo "👀 Check your README at: https://github.com/${{ github.repository }}"
-          echo "📊 Manual trigger: Go to Actions tab → 'Update README with Hackatime Stats' → 'Run workflow'"
+          git diff --staged --quiet || (git commit -m "📊 Update README with latest stats" && git push)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
