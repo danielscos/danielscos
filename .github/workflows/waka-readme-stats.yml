@@ -1,29 +1,284 @@
-name: Hackatime Readme Stats
+name: Enhanced Hackatime Stats
 
 on:
   workflow_dispatch:
   schedule:
+    # Runs daily at 12 AM UTC (automatic)
     - cron: "0 0 * * *"
 
 jobs:
   update-readme:
-    name: Update README with coding stats
+    name: Update README with Enhanced Coding Stats
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Update README with Hackatime stats
-        uses: athul/waka-readme@master
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
-          API_BASE_URL: https://hackatime.hackclub.com/api/hackatime
-          SHOW_TITLE: true
-          BLOCKS: "░▒▓█"
-          TIME_RANGE: last_7_days
-          LANG_COUNT: 10
-          SHOW_TIME: true
-          SHOW_TOTAL: true
-          COMMIT_MESSAGE: "📊 Updated Hackatime coding stats"
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install requests python-dateutil
+
+      - name: Generate Enhanced Hackatime Stats
+        env:
+          HACKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+        run: |
+          python << 'EOF'
+          import os
+          import re
+          import requests
+          import json
+          from datetime import datetime, timezone
+          from dateutil import parser
+
+          # Configuration
+          API_KEY = os.environ.get('HACKATIME_API_KEY')
+          API_URL = 'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days'
+
+          def fetch_hackatime_stats():
+              headers = {
+                  'Authorization': f'Bearer {API_KEY}',
+                  'User-Agent': 'Enhanced-Hackatime-Stats/1.0'
+              }
+
+              try:
+                  response = requests.get(API_URL, headers=headers)
+                  response.raise_for_status()
+                  return response.json()
+              except Exception as e:
+                  print(f"Error fetching stats: {e}")
+                  return None
+
+          def format_duration(total_seconds):
+              if total_seconds == 0:
+                  return "0 mins"
+              hours = total_seconds // 3600
+              minutes = (total_seconds % 3600) // 60
+              if hours > 0:
+                  return f"{hours} hrs {minutes} mins"
+              else:
+                  return f"{minutes} mins"
+
+          def create_progress_bar(percent, length=25):
+              filled = int(length * percent / 100)
+              empty = length - filled
+              return '█' * filled + '░' * empty
+
+          def normalize_name(name):
+              """Normalize names to avoid duplicates and improve display"""
+              if not name or name.strip() == "":
+                  return "Other"
+
+              name = name.strip()
+              name_lower = name.lower()
+
+              # Language normalization
+              lang_map = {
+                  'javascript': 'JavaScript',
+                  'typescript': 'TypeScript',
+                  'python': 'Python',
+                  'jsx': 'JSX',
+                  'tsx': 'TSX',
+                  'css': 'CSS',
+                  'html': 'HTML',
+                  'json': 'JSON',
+                  'yaml': 'YAML',
+                  'yml': 'YAML',
+                  'markdown': 'Markdown',
+                  'md': 'Markdown',
+                  'rust': 'Rust',
+                  'go': 'Go',
+                  'java': 'Java',
+                  'c++': 'C++',
+                  'cpp': 'C++',
+                  'c': 'C',
+                  'php': 'PHP',
+                  'ruby': 'Ruby',
+                  'swift': 'Swift',
+                  'kotlin': 'Kotlin',
+                  'dart': 'Dart',
+                  'shell': 'Shell',
+                  'bash': 'Bash',
+                  'sql': 'SQL',
+                  'dockerfile': 'Docker',
+                  'docker': 'Docker'
+              }
+
+              # OS normalization
+              os_map = {
+                  'linux': 'Linux',
+                  'windows': 'Windows',
+                  'darwin': 'macOS',
+                  'macos': 'macOS',
+                  'ubuntu': 'Ubuntu',
+                  'arch': 'Arch Linux',
+                  'fedora': 'Fedora',
+                  'debian': 'Debian'
+              }
+
+              # Editor normalization
+              editor_map = {
+                  'vscode': 'VS Code',
+                  'visual studio code': 'VS Code',
+                  'vim': 'Vim',
+                  'neovim': 'Neovim',
+                  'emacs': 'Emacs',
+                  'sublime text': 'Sublime Text',
+                  'atom': 'Atom',
+                  'intellij': 'IntelliJ IDEA',
+                  'pycharm': 'PyCharm',
+                  'webstorm': 'WebStorm',
+                  'android studio': 'Android Studio'
+              }
+
+              # Check all mappings
+              if name_lower in lang_map:
+                  return lang_map[name_lower]
+              elif name_lower in os_map:
+                  return os_map[name_lower]
+              elif name_lower in editor_map:
+                  return editor_map[name_lower]
+
+              # Capitalize first letter for unknown items
+              return name.capitalize()
+
+          def merge_duplicates(items):
+              """Merge items with the same normalized name"""
+              merged = {}
+
+              for item in items:
+                  normalized_name = normalize_name(item.get('name', 'Other'))
+
+                  if normalized_name in merged:
+                      merged[normalized_name]['total_seconds'] += item.get('total_seconds', 0)
+                      merged[normalized_name]['percent'] += item.get('percent', 0)
+                  else:
+                      item_copy = item.copy()
+                      item_copy['name'] = normalized_name
+                      merged[normalized_name] = item_copy
+
+              return sorted(merged.values(), key=lambda x: x.get('total_seconds', 0), reverse=True)
+
+          def format_section(title, items, emoji, max_items=5):
+              if not items:
+                  return ""
+
+              items = merge_duplicates(items)
+              content = f"\n{emoji} **{title}:**\n```text\n"
+
+              for item in items[:max_items]:
+                  name = item.get('name', 'Unknown')
+                  time_str = format_duration(item.get('total_seconds', 0))
+                  percent = item.get('percent', 0)
+                  progress_bar = create_progress_bar(percent)
+
+                  content += f"{name:<15} {time_str:<12} {progress_bar} {percent:>6.2f}%\n"
+
+              content += "```\n"
+              return content
+
+          def generate_enhanced_stats(data):
+              if not data or 'data' not in data:
+                  return "📊 **This Week I Spent My Time On:**\n\n```text\nNo coding activity tracked this week\n```\n"
+
+              stats = data['data']
+
+              # Main stats content
+              content = "📊 **This Week I Spent My Time On:**\n\n"
+
+              # Total time
+              total_time = stats.get('human_readable_total', 'N/A')
+              if total_time != 'N/A':
+                  content += f"⏱️ **Total:** {total_time}\n"
+
+              # Programming Languages
+              languages = stats.get('languages', [])
+              if languages:
+                  content += format_section("Programming Languages", languages, "💬", 8)
+
+              # Operating Systems
+              operating_systems = stats.get('operating_systems', [])
+              if operating_systems:
+                  content += format_section("Operating System", operating_systems, "💻", 3)
+
+              # Editors
+              editors = stats.get('editors', [])
+              if editors:
+                  content += format_section("Editors", editors, "🔥", 3)
+
+              # Projects (if available and not too many)
+              projects = stats.get('projects', [])
+              if projects and len(projects) <= 8:
+                  content += format_section("Projects", projects, "📁", 5)
+
+              # Add last updated info
+              content += f"\n📅 **Last Updated:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} UTC\n"
+
+              return content
+
+          def update_readme(stats_content):
+              readme_path = 'README.md'
+
+              try:
+                  with open(readme_path, 'r', encoding='utf-8') as f:
+                      content = f.read()
+              except FileNotFoundError:
+                  print("README.md not found")
+                  return False
+
+              # Pattern to match the waka section
+              pattern = r'<!--START_SECTION:waka-->.*?<!--END_SECTION:waka-->'
+              replacement = f'<!--START_SECTION:waka-->\n{stats_content}\n<!--END_SECTION:waka-->'
+
+              if re.search(pattern, content, re.DOTALL):
+                  new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+
+                  with open(readme_path, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+
+                  print("✅ README.md updated successfully")
+                  return True
+              else:
+                  print("❌ Waka section markers not found in README.md")
+                  return False
+
+          def main():
+              print("🚀 Fetching enhanced Hackatime stats...")
+              stats_data = fetch_hackatime_stats()
+
+              if not stats_data:
+                  print("❌ Failed to fetch stats")
+                  return
+
+              print("📊 Generating enhanced stats content...")
+              stats_content = generate_enhanced_stats(stats_data)
+
+              print("📝 Updating README...")
+              success = update_readme(stats_content)
+
+              if success:
+                  print("🎉 README updated with enhanced Hackatime stats!")
+              else:
+                  print("💥 Failed to update README")
+
+          if __name__ == "__main__":
+              main()
+          EOF
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Enhanced Hackatime Stats"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📊 Updated enhanced coding stats with OS, editors, and projects"
+            git push
+          fi
