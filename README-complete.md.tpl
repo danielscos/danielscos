@@ -20,13 +20,15 @@
 
 ```text
 💾 Languages:
-{{ wakatimeData.Languages | wakatimeCategoryBar 10 }}
+{{ wakatimeData.Languages | wakatimeCategoryBar (len wakatimeData.Languages) }}
 
 💼 Projects:
-{{ wakatimeData.Projects | wakatimeCategoryBar 10 }}
+{{ wakatimeData.Projects | wakatimeCategoryBar (len wakatimeData.Projects) }}
 ```
 
-*Note: Showing top 10 languages and projects. Some minor entries may not be displayed.*
+*Note: Complete breakdown showing all languages and projects tracked this week.*
+
+*Data last updated: {{ wakatimeData.Start }} to {{ wakatimeData.End }}*
 
 ---
 
