@@ -208,9 +208,7 @@ jobs:
                   content += f"Other ({remaining_items}) {remaining_time:<12} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
                   total_seconds_shown += remaining_seconds
 
-              # Debug info for time verification
-              total_time_shown = format_duration(total_seconds_shown)
-              content += f"Total Shown: {total_time_shown}\n"
+              # Remove confusing "Total Shown" line that implies additive totals
 
               content += "```\n"
               return content
@@ -234,10 +232,11 @@ jobs:
               # Main stats content
               content = "📊 **This Week I Spent My Time On:**\n\n"
 
-              # Total time
+              # Total time with clarification
               total_time = stats.get('human_readable_total', 'N/A')
               if total_time != 'N/A':
-                  content += f"⏱️ **Total:** {total_time}\n"
+                  content += f"⏱️ **Total Time:** {total_time}\n"
+                  content += f"📝 *The following categories show how this time was distributed:*\n"
 
               # Programming Languages
               languages = stats.get('languages', [])
