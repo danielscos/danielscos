@@ -262,16 +262,16 @@ jobs:
               api_total_seconds = stats.get('total_seconds', 0)
               total_time = stats.get('human_readable_total', 'N/A')
 
-              # Manual override: Use 10h 30m (37800 seconds) as the correct total
-              # The API total_seconds seems to be wrong based on Hackatime website
-              correct_total_seconds = 37800  # 10 hours 30 minutes
+              # Manual override: Use current correct total from API
+              # Use the API total_seconds as it appears to be accurate now
+              correct_total_seconds = api_total_seconds  # Use current API total
 
               print(f"🔍 API total_seconds: {api_total_seconds}")
               print(f"🔍 API human_readable: {total_time}")
               print(f"🔍 Using corrected total: {format_duration(correct_total_seconds)}")
 
               if total_time != 'N/A':
-                  content += f"⏱️ **Total Time:** 10 hrs 30 mins\n"
+                  content += f"⏱️ **Total Time:** {total_time}\n"
                   content += f"📝 *The following categories show how this time was distributed:*\n"
 
               # Programming Languages
@@ -279,7 +279,7 @@ jobs:
               if languages:
                   print(f"🔤 First 3 languages: {languages[:3]}")
                   print(f"🔤 Total languages in data: {len(languages)}")
-                  print(f"🔤 Total seconds available: {total_seconds}")
+                  print(f"🔤 Total seconds available: {api_total_seconds}")
 
                   # Check if percentages add up correctly
                   total_percent = sum(lang.get('percent', 0) for lang in languages)
