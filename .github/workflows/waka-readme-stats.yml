@@ -80,6 +80,11 @@ jobs:
               else:
                   return f"{minutes} mins"
 
+          def calculate_time_from_percentage(total_seconds, percentage):
+              """Calculate actual time from percentage of total"""
+              actual_seconds = int((percentage / 100.0) * total_seconds)
+              return actual_seconds
+
           def create_progress_bar(percent, length=25):
               filled = int(length * percent / 100)
               empty = length - filled
@@ -180,35 +185,43 @@ jobs:
 
               return sorted(merged.values(), key=lambda x: x.get('total_seconds', 0), reverse=True)
 
-          def format_section(title, items, emoji, max_items=10):
+          def format_section(title, items, emoji, max_items=10, total_seconds=None):
               if not items:
                   return ""
 
               items = merge_duplicates(items)
               content = f"\n{emoji} **{title}:**\n```text\n"
 
-              # Show ALL items and calculate total to verify
-              total_seconds_shown = 0
               for i, item in enumerate(items):
                   if i >= max_items:
                       break
                   name = item.get('name', 'Unknown')
-                  time_str = format_duration(item.get('total_seconds', 0))
                   percent = item.get('percent', 0)
+
+                  # Calculate actual time from percentage if total_seconds provided
+                  if total_seconds:
+                      actual_seconds = calculate_time_from_percentage(total_seconds, percent)
+                      time_str = format_duration(actual_seconds)
+                  else:
+                      time_str = format_duration(item.get('total_seconds', 0))
+
                   progress_bar = create_progress_bar(percent)
-                  total_seconds_shown += item.get('total_seconds', 0)
 
                   content += f"{name:<15} {time_str:<12} {progress_bar} {percent:>6.2f}%\n"
 
               # Show remaining items if any
               if len(items) > max_items:
                   remaining_items = len(items) - max_items
-                  remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
-                  remaining_time = format_duration(remaining_seconds)
-                  content += f"Other ({remaining_items}) {remaining_time:<12} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
-                  total_seconds_shown += remaining_seconds
+                  remaining_percent = sum(item.get('percent', 0) for item in items[max_items:])
 
-              # Remove confusing "Total Shown" line that implies additive totals
+                  if total_seconds:
+                      remaining_seconds = calculate_time_from_percentage(total_seconds, remaining_percent)
+                      remaining_time = format_duration(remaining_seconds)
+                  else:
+                      remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
+                      remaining_time = format_duration(remaining_seconds)
+
+                  content += f"Other ({remaining_items}) {remaining_time:<12} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
 
               content += "```\n"
               return content
@@ -232,8 +245,10 @@ jobs:
               # Main stats content
               content = "📊 **This Week I Spent My Time On:**\n\n"
 
-              # Total time with clarification
+              # Get total seconds for calculations
+              total_seconds = stats.get('total_seconds', 0)
               total_time = stats.get('human_readable_total', 'N/A')
+
               if total_time != 'N/A':
                   content += f"⏱️ **Total Time:** {total_time}\n"
                   content += f"📝 *The following categories show how this time was distributed:*\n"
@@ -243,68 +258,40 @@ jobs:
               if languages:
                   print(f"🔤 First 3 languages: {languages[:3]}")
                   print(f"🔤 Total languages in data: {len(languages)}")
-                  total_lang_seconds = sum(lang.get('total_seconds', 0) for lang in languages)
-                  print(f"🔤 Total seconds from all languages: {total_lang_seconds}")
-                  print(f"🔤 Expected total seconds: {stats.get('total_seconds', 'N/A')}")
+                  print(f"🔤 Total seconds available: {total_seconds}")
 
                   # Check if percentages add up correctly
                   total_percent = sum(lang.get('percent', 0) for lang in languages)
                   print(f"🔤 Total percentage from languages: {total_percent:.2f}%")
 
-                  content += format_section("Programming Languages", languages, "💬", 20)
+                  content += format_section("Programming Languages", languages, "💬", 20, total_seconds)
 
               # Operating Systems
               operating_systems = stats.get('operating_systems', [])
               if operating_systems:
                   print(f"💻 OS data: {operating_systems}")
-                  os_total_seconds = sum(os.get('total_seconds', 0) for os in operating_systems)
-                  print(f"💻 Total OS seconds: {os_total_seconds}")
-                  content += format_section("Operating System", operating_systems, "💻", 5)
+                  content += format_section("Operating System", operating_systems, "💻", 5, total_seconds)
 
               # Editors
               editors = stats.get('editors', [])
               if editors:
                   print(f"🔥 Editors data: {editors}")
-                  editors_total_seconds = sum(editor.get('total_seconds', 0) for editor in editors)
-                  print(f"🔥 Total editors seconds: {editors_total_seconds}")
-                  content += format_section("Editors", editors, "🔥", 5)
+                  content += format_section("Editors", editors, "🔥", 5, total_seconds)
 
               # Projects
               projects = stats.get('projects', [])
               if projects:
                   print(f"📁 Projects data: {projects}")
-                  projects_total_seconds = sum(project.get('total_seconds', 0) for project in projects)
-                  print(f"📁 Total projects seconds: {projects_total_seconds}")
                   if len(projects) <= 15:  # Show more projects
-                      content += format_section("Projects", projects, "📁", 8)
+                      content += format_section("Projects", projects, "📁", 8, total_seconds)
                   else:
                       print(f"📁 Too many projects ({len(projects)}), showing top 8")
-                      content += format_section("Projects", projects, "📁", 8)
+                      content += format_section("Projects", projects, "📁", 8, total_seconds)
 
-              # Check for other categories that might contain time
-              categories = stats.get('categories', [])
-              if categories:
-                  print(f"📂 Categories found: {categories}")
-                  cat_total_seconds = sum(cat.get('total_seconds', 0) for cat in categories)
-                  print(f"📂 Total categories seconds: {cat_total_seconds}")
-
-              machines = stats.get('machines', [])
-              if machines:
-                  print(f"🖥️ Machines found: {machines}")
-                  machines_total_seconds = sum(machine.get('total_seconds', 0) for machine in machines)
-                  print(f"🖥️ Total machines seconds: {machines_total_seconds}")
-
-              # Final verification
-              all_sections_total = total_lang_seconds + os_total_seconds + editors_total_seconds + projects_total_seconds
-              expected_total = stats.get('total_seconds', 0)
+              # Final verification using percentages
               print(f"🔍 VERIFICATION:")
-              print(f"   Languages: {format_duration(total_lang_seconds)}")
-              print(f"   OS: {format_duration(os_total_seconds)}")
-              print(f"   Editors: {format_duration(editors_total_seconds)}")
-              print(f"   Projects: {format_duration(projects_total_seconds)}")
-              print(f"   All sections total: {format_duration(all_sections_total)}")
-              print(f"   Expected total: {format_duration(expected_total)}")
-              print(f"   Difference: {format_duration(abs(expected_total - all_sections_total))}")
+              print(f"   Total time: {format_duration(total_seconds)}")
+              print(f"   Using percentages to calculate actual times spent")
 
               # Add last updated info
               content += f"\n📅 **Last Updated:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} UTC\n"
