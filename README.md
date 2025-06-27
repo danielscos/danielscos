@@ -16,30 +16,6 @@
 
 [![Hackatime](https://img.shields.io/badge/Hackatime-Hack%20Club-orange?style=for-the-badge&logo=wakatime&logoColor=white)](https://hackatime.hackclub.com)
 
-<!--START_SECTION:waka-->
-**🕐 This Week I Spent My Time On:**
-
-```text
-No activity tracked this week
-```
-
-**💻 Languages:**
-```text
-No Language data available
-```
-
-**🔥 Editors:**
-```text
-No Editor data available  
-```
-
-**💻 Operating System:**
-```text
-No OS data available
-```
-<!--END_SECTION:waka-->
-
----
 
 ## Info
 [![About Me](https://img.shields.io/badge/About--Me-black?style=for-the-badge&logo=numpy&logoColor=white)](https://danielscos.github.io/about_me)
