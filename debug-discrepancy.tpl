@@ -39,18 +39,30 @@ Total Projects Count: {{ len wakatimeData.Projects }}
 - **Difference**: {{ sub wakatimeData.TotalSeconds $totalProjectSeconds }} seconds
 
 ## Language Time Analysis (Top 15)
+{{ $totalLanguageSeconds := 0 }}
 {{ range $index, $lang := slice wakatimeData.Languages 0 15 }}
 **{{ $lang.Name }}**: {{ $lang.Text }} ({{ $lang.TotalSeconds }}s, {{ printf "%.2f" $lang.Percent }}%)
+{{ $totalLanguageSeconds = add $totalLanguageSeconds $lang.TotalSeconds }}
 {{ end }}
+
+**Sum of top 15 language seconds**: {{ $totalLanguageSeconds }}
+**Language total vs API total difference**: {{ sub wakatimeData.TotalSeconds $totalLanguageSeconds }} seconds
 
 ## Raw Time Calculations Check
 {{ $manualTotal := 0 }}
 **Manual Project Addition:**
 {{ range wakatimeData.Projects }}
-- {{ .Name }}: {{ .TotalSeconds }}s
+- {{ .Name }}: {{ .TotalSeconds }}s ({{ .Text }})
 {{ $manualTotal = add $manualTotal .TotalSeconds }}
 {{ end }}
 **Manual Total**: {{ $manualTotal }} seconds
+**Manual Total in Hours/Minutes**: {{ div $manualTotal 3600 }}h {{ div (mod $manualTotal 3600) 60 }}m
+
+## DISCREPANCY ANALYSIS
+- **API Reports Total**: {{ wakatimeData.TotalSeconds }} seconds ({{ wakatimeData.HumanReadableTotal }})
+- **Sum of All Projects**: {{ $manualTotal }} seconds ({{ div $manualTotal 3600 }}h {{ div (mod $manualTotal 3600) 60 }}m)
+- **Missing/Extra Time**: {{ sub wakatimeData.TotalSeconds $manualTotal }} seconds
+- **Percentage Difference**: {{ if ne $manualTotal 0 }}{{ printf "%.1f" (mul (div (sub wakatimeData.TotalSeconds $manualTotal) $manualTotal) 100) }}%{{ else }}N/A{{ end }}
 
 ## Time Range Verification
 - **Period**: {{ wakatimeData.Start }} to {{ wakatimeData.End }}
@@ -67,8 +79,22 @@ Total Projects Count: {{ len wakatimeData.Projects }}
 
 ---
 
-**EXPECTED vs ACTUAL**:
-- Dashboard osint-news-channel: ~4h 48m (17,280 seconds)
-- API osint-news-channel: {{ range wakatimeData.Projects }}{{ if eq .Name "osint-news-channel" }}{{ .Text }} ({{ .TotalSeconds }}s){{ end }}{{ end }}
+## SUMMARY OF ISSUES FOUND
+{{ $projectTotal := 0 }}
+{{ range wakatimeData.Projects }}{{ $projectTotal = add $projectTotal .TotalSeconds }}{{ end }}
+{{ if ne wakatimeData.TotalSeconds $projectTotal }}
+🚨 **MAJOR DISCREPANCY DETECTED**:
+- API claims total: {{ wakatimeData.HumanReadableTotal }} ({{ wakatimeData.TotalSeconds }}s)
+- Projects actually sum to: {{ div $projectTotal 3600 }}h {{ div (mod $projectTotal 3600) 60 }}m ({{ $projectTotal }}s)
+- **Missing/Extra**: {{ sub wakatimeData.TotalSeconds $projectTotal }} seconds ({{ printf "%.1f" (div (sub wakatimeData.TotalSeconds $projectTotal) 60.0) }} minutes)
+
+**POSSIBLE CAUSES**:
+1. API aggregation bug in Hackatime
+2. Data sync issues between different API endpoints
+3. Hidden/uncategorized time not shown in projects breakdown
+4. Time range mismatch between total and breakdown calls
+{{ else }}
+✅ **NO DISCREPANCY**: Project times sum correctly to API total
+{{ end }}
 
 Debug complete - check for time discrepancies above.
