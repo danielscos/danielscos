@@ -1,0 +1,163 @@
+name: Hackatime Stats
+
+on:
+  # for manual workflow trigger
+  workflow_dispatch:
+  schedule:
+    # runs at 12 AM UTC
+    - cron: "0 0 * * *"
+
+jobs:
+  update-readme:
+    name: Update README with Hackatime Stats
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Update README with Hackatime stats
+        env:
+          HACKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+        run: |
+          python << 'EOF'
+          import os
+          import re
+          import requests
+          from datetime import datetime, timezone
+
+          # Configuration
+          API_KEY = os.environ.get('HACKATIME_API_KEY')
+          API_URL = 'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days'
+
+          def fetch_hackatime_stats():
+              headers = {
+                  'Authorization': f'Bearer {API_KEY}',
+                  'User-Agent': 'Hackatime-README-Stats/1.0'
+              }
+
+              try:
+                  response = requests.get(API_URL, headers=headers)
+                  response.raise_for_status()
+                  return response.json()
+              except requests.exceptions.RequestException as e:
+                  print(f"Error fetching stats: {e}")
+                  return None
+
+          def format_duration(total_seconds):
+              if total_seconds == 0:
+                  return "0 mins"
+              hours = total_seconds // 3600
+              minutes = (total_seconds % 3600) // 60
+              if hours > 0:
+                  return f"{hours} hrs {minutes} mins"
+              else:
+                  return f"{minutes} mins"
+
+          def create_progress_bar(percent, length=25):
+              filled = int(length * percent / 100)
+              empty = length - filled
+              return '█' * filled + '░' * empty
+
+          def generate_stats_content(data):
+              if not data or 'data' not in data:
+                  return "📊 **This Week I Spent My Time On:**\n\n```text\nNo coding activity tracked this week\n```\n"
+
+              stats = data['data']
+              languages = stats.get('languages', [])
+
+              if not languages:
+                  return "📊 **This Week I Spent My Time On:**\n\n```text\nNo coding activity tracked this week\n```\n"
+
+              # Generate the stats content
+              content = "📊 **This Week I Spent My Time On:**\n\n```text\n"
+
+              # Add total time if available
+              total_time = stats.get('human_readable_total', 'N/A')
+              if total_time != 'N/A':
+                  content += f"Total: {total_time}\n\n"
+
+              # Add languages
+              for lang in languages[:10]:  # Top 10 languages
+                  name = lang['name']
+                  time_str = format_duration(lang['total_seconds'])
+                  percent = lang['percent']
+                  progress_bar = create_progress_bar(percent)
+
+                  # Format the line
+                  content += f"{name:<15} {time_str:<15} {progress_bar} {percent:>6.2f}%\n"
+
+              content += "```\n"
+              return content
+
+          def update_readme(stats_content):
+              readme_path = 'README.md'
+
+              try:
+                  with open(readme_path, 'r', encoding='utf-8') as f:
+                      content = f.read()
+              except FileNotFoundError:
+                  print("README.md not found")
+                  return False
+
+              # Pattern to match the waka section
+              pattern = r'<!--START_SECTION:waka-->.*?<!--END_SECTION:waka-->'
+              replacement = f'<!--START_SECTION:waka-->\n{stats_content}\n<!--END_SECTION:waka-->'
+
+              if re.search(pattern, content, re.DOTALL):
+                  new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+
+                  # Write back to file
+                  with open(readme_path, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+
+                  print("README.md updated successfully")
+                  return True
+              else:
+                  print("Waka section markers not found in README.md")
+                  return False
+
+          def main():
+              print("Fetching Hackatime stats...")
+              stats_data = fetch_hackatime_stats()
+
+              if not stats_data:
+                  print("Failed to fetch stats")
+                  return
+
+              print("Generating stats content...")
+              stats_content = generate_stats_content(stats_data)
+
+              print("Updating README...")
+              success = update_readme(stats_content)
+
+              if success:
+                  print("✅ README updated with Hackatime stats")
+              else:
+                  print("❌ Failed to update README")
+
+          if __name__ == "__main__":
+              main()
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📊 Updated Hackatime coding stats"
+            git push
+          fi
