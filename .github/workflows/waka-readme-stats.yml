@@ -39,7 +39,7 @@ jobs:
 
           # Configuration
           API_KEY = os.environ.get('HACKATIME_API_KEY')
-          API_URL = 'https://hackatime.hackclub.com/api/summary'
+          API_URL = 'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days'
 
           def fetch_hackatime_stats():
               headers = {
@@ -47,16 +47,25 @@ jobs:
                   'User-Agent': 'Enhanced-Hackatime-Stats/1.0'
               }
 
-              params = {
-                  'range': 'last_7_days'
-              }
+              print(f"🔍 Fetching from: {API_URL}")
+              print(f"🔑 Using API key: {API_KEY[:10]}..." if API_KEY else "❌ No API key found")
 
               try:
-                  response = requests.get(API_URL, headers=headers, params=params)
-                  response.raise_for_status()
-                  return response.json()
+                  response = requests.get(API_URL, headers=headers, timeout=30)
+                  print(f"📡 Response status: {response.status_code}")
+
+                  if response.status_code != 200:
+                      print(f"❌ Error response: {response.text}")
+                      return None
+
+                  data = response.json()
+                  print(f"✅ Successfully fetched data")
+                  return data
+              except requests.exceptions.Timeout:
+                  print("⏰ Request timed out after 30 seconds")
+                  return None
               except Exception as e:
-                  print(f"Error fetching stats: {e}")
+                  print(f"💥 Error fetching stats: {e}")
                   return None
 
           def format_duration(total_seconds):
@@ -253,21 +262,28 @@ jobs:
                   return False
 
           def main():
-              print("🚀 Fetching enhanced Hackatime stats...")
+              print("🚀 Starting enhanced Hackatime stats workflow...")
+
+              # Check if API key exists
+              if not API_KEY:
+                  print("❌ HACKATIME_API_KEY environment variable not found")
+                  return
+
+              print("🔄 Fetching Hackatime stats...")
               stats_data = fetch_hackatime_stats()
 
               if not stats_data:
-                  print("❌ Failed to fetch stats")
-                  return
-
-              print("📊 Generating enhanced stats content...")
-              stats_content = generate_enhanced_stats(stats_data)
+                  print("❌ Failed to fetch stats - using fallback message")
+                  stats_content = "📊 **This Week I Spent My Time On:**\n\n```text\nUnable to fetch coding stats at this time\n```\n"
+              else:
+                  print("📊 Generating enhanced stats content...")
+                  stats_content = generate_enhanced_stats(stats_data)
 
               print("📝 Updating README...")
               success = update_readme(stats_content)
 
               if success:
-                  print("🎉 README updated with enhanced Hackatime stats!")
+                  print("🎉 README updated successfully!")
               else:
                   print("💥 Failed to update README")
 
