@@ -1,4 +1,4 @@
-name: Waka Readme (Anmol098)
+name: Update README
 
 on:
   schedule:
@@ -35,7 +35,7 @@ jobs:
           SHOW_COMMIT: "True"
 
           # Customization options
-          COMMIT_MESSAGE: "📊 Updated development metrics"
+          COMMIT_MESSAGE: "📊 Update README with latest stats"
           SHOW_TOTAL_CODE_TIME: "True"
           LOCALE: "en"
 
