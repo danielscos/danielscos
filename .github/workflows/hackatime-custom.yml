@@ -20,7 +20,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -34,6 +34,7 @@ jobs:
           import os
           import re
           import requests
+          import json
           from datetime import datetime, timezone
 
           # Configuration
@@ -49,9 +50,14 @@ jobs:
               try:
                   response = requests.get(API_URL, headers=headers)
                   response.raise_for_status()
-                  return response.json()
+                  data = response.json()
+                  print(f"API Response: {json.dumps(data, indent=2)}")
+                  return data
               except requests.exceptions.RequestException as e:
                   print(f"Error fetching stats: {e}")
+                  if hasattr(e, 'response') and e.response is not None:
+                      print(f"Response status: {e.response.status_code}")
+                      print(f"Response body: {e.response.text}")
                   return None
 
           def format_duration(total_seconds):
@@ -69,15 +75,63 @@ jobs:
               empty = length - filled
               return '█' * filled + '░' * empty
 
+          def normalize_language_name(name):
+              """Normalize language names to avoid duplicates"""
+              name = name.strip()
+              # Convert to title case and handle common variations
+              name_lower = name.lower()
+
+              # Handle JavaScript variations
+              if name_lower in ['javascript', 'js']:
+                  return 'JavaScript'
+              elif name_lower in ['typescript', 'ts']:
+                  return 'TypeScript'
+              elif name_lower in ['python', 'py']:
+                  return 'Python'
+              elif name_lower in ['jsx', 'react']:
+                  return 'JSX'
+              elif name_lower in ['yaml', 'yml']:
+                  return 'YAML'
+
+              # Capitalize first letter
+              return name.capitalize()
+
+          def merge_duplicate_languages(languages):
+              """Merge languages with the same normalized name"""
+              merged = {}
+
+              for lang in languages:
+                  normalized_name = normalize_language_name(lang['name'])
+
+                  if normalized_name in merged:
+                      # Merge the data
+                      merged[normalized_name]['total_seconds'] += lang['total_seconds']
+                      merged[normalized_name]['percent'] += lang['percent']
+                  else:
+                      lang_copy = lang.copy()
+                      lang_copy['name'] = normalized_name
+                      merged[normalized_name] = lang_copy
+
+              # Convert back to list and sort by total_seconds
+              return sorted(merged.values(), key=lambda x: x['total_seconds'], reverse=True)
+
           def generate_stats_content(data):
+              print(f"Processing data: {json.dumps(data, indent=2)}")
+
               if not data or 'data' not in data:
                   return "📊 **This Week I Spent My Time On:**\n\n```text\nNo coding activity tracked this week\n```\n"
 
               stats = data['data']
               languages = stats.get('languages', [])
 
+              print(f"Found {len(languages)} languages")
+
               if not languages:
                   return "📊 **This Week I Spent My Time On:**\n\n```text\nNo coding activity tracked this week\n```\n"
+
+              # Merge duplicate languages
+              languages = merge_duplicate_languages(languages)
+              print(f"After merging: {len(languages)} unique languages")
 
               # Generate the stats content
               content = "📊 **This Week I Spent My Time On:**\n\n```text\n"
@@ -88,11 +142,13 @@ jobs:
                   content += f"Total: {total_time}\n\n"
 
               # Add languages
-              for lang in languages[:10]:  # Top 10 languages
+              for i, lang in enumerate(languages[:10]):  # Top 10 languages
                   name = lang['name']
                   time_str = format_duration(lang['total_seconds'])
                   percent = lang['percent']
                   progress_bar = create_progress_bar(percent)
+
+                  print(f"Language {i+1}: {name} - {time_str} - {percent}%")
 
                   # Format the line
                   content += f"{name:<15} {time_str:<15} {progress_bar} {percent:>6.2f}%\n"

@@ -1,0 +1,89 @@
+name: Debug Hackatime API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-api:
+    name: Debug Hackatime API Response
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Test Hackatime API
+        env:
+          HACKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+        run: |
+          python << 'EOF'
+          import os
+          import requests
+          import json
+
+          # Configuration
+          API_KEY = os.environ.get('HACKATIME_API_KEY')
+          API_URL = 'https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days'
+
+          print(f"Testing API URL: {API_URL}")
+          print(f"API Key (first 10 chars): {API_KEY[:10]}..." if API_KEY else "No API key found")
+
+          headers = {
+              'Authorization': f'Bearer {API_KEY}',
+              'User-Agent': 'Hackatime-README-Stats/1.0'
+          }
+
+          try:
+              print("\n🔍 Making API request...")
+              response = requests.get(API_URL, headers=headers)
+
+              print(f"Status Code: {response.status_code}")
+              print(f"Response Headers: {dict(response.headers)}")
+
+              if response.status_code == 200:
+                  data = response.json()
+                  print(f"\n✅ API Response (formatted):")
+                  print(json.dumps(data, indent=2))
+
+                  # Analyze the data structure
+                  if 'data' in data:
+                      stats = data['data']
+                      print(f"\n📊 Stats Summary:")
+                      print(f"- Total seconds: {stats.get('total_seconds', 'N/A')}")
+                      print(f"- Human readable total: {stats.get('human_readable_total', 'N/A')}")
+                      print(f"- Range: {stats.get('range', 'N/A')}")
+
+                      languages = stats.get('languages', [])
+                      print(f"- Number of languages: {len(languages)}")
+
+                      if languages:
+                          print(f"\n🔤 Languages breakdown:")
+                          for i, lang in enumerate(languages[:5]):  # Show top 5
+                              print(f"  {i+1}. {lang.get('name', 'Unknown')} - {lang.get('total_seconds', 0)}s ({lang.get('percent', 0):.2f}%)")
+
+                      editors = stats.get('editors', [])
+                      print(f"\n💻 Editors: {len(editors)} found")
+
+                      projects = stats.get('projects', [])
+                      print(f"📁 Projects: {len(projects)} found")
+
+              else:
+                  print(f"\n❌ API Error:")
+                  print(f"Response: {response.text}")
+
+          except requests.exceptions.RequestException as e:
+              print(f"\n💥 Request failed: {e}")
+              if hasattr(e, 'response') and e.response is not None:
+                  print(f"Response status: {e.response.status_code}")
+                  print(f"Response body: {e.response.text}")
+          except json.JSONDecodeError as e:
+              print(f"\n💥 JSON decode error: {e}")
+              print(f"Raw response: {response.text}")
+          except Exception as e:
+              print(f"\n💥 Unexpected error: {e}")
+          EOF
