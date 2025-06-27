@@ -1,0 +1,72 @@
+name: Debug Anmol098 Action
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  debug-anmol:
+    name: Debug waka-readme-stats
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show current README
+        run: |
+          echo "=== CURRENT README CONTENT ==="
+          cat README.md
+          echo "=== END CURRENT README ==="
+
+      - name: Test API Connection
+        run: |
+          echo "=== TESTING API CONNECTION ==="
+          curl -H "Authorization: Bearer ${{ secrets.WAKATIME_API_KEY }}" \
+               "https://hackatime.hackclub.com/api/compat/wakatime/v1/users/current/stats/last_7_days" \
+               -w "HTTP Status: %{http_code}\n" || echo "API test failed"
+
+      - name: Profile Readme Development Stats (Minimal)
+        uses: anmol098/waka-readme-stats@v4
+        with:
+          WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          WAKATIME_API_URL: "https://hackatime.hackclub.com/api/compat/wakatime/v1"
+          SHOW_COMMIT: "False"
+          SHOW_LINES_OF_CODE: "False"
+          SHOW_PROFILE_VIEWS: "False"
+          SHOW_DAYS_OF_WEEK: "False"
+          SHOW_TIMEZONE: "False"
+          SHOW_EDITORS: "False"
+          SHOW_LANGUAGE_PER_REPO: "False"
+          SHOW_LOC_CHART: "False"
+          SHOW_SHORT_INFO: "False"
+          SHOW_OS: "False"
+          SHOW_PROJECTS: "True"
+          SHOW_UPDATED_DATE: "False"
+          SHOW_TOTAL_CODE_TIME: "True"
+          SHOW_LANGUAGE: "True"
+          SHOW_WAKA_STATS: "True"
+
+      - name: Show updated README
+        run: |
+          echo "=== UPDATED README CONTENT ==="
+          cat README.md
+          echo "=== END UPDATED README ==="
+
+      - name: Check for changes
+        run: |
+          echo "=== CHECKING FOR CHANGES ==="
+          if git diff --quiet README.md; then
+            echo "❌ No changes detected in README.md"
+          else
+            echo "✅ Changes detected in README.md"
+            echo "=== DIFF ==="
+            git diff README.md
+          fi
+
+      - name: Test alternative API URL
+        if: always()
+        run: |
+          echo "=== TESTING ALTERNATIVE API ==="
+          curl -H "Authorization: Bearer ${{ secrets.WAKATIME_API_KEY }}" \
+               "https://hackatime.hackclub.com/api/hackatime/v1/users/current/stats/last_7_days" \
+               -w "HTTP Status: %{http_code}\n" || echo "Alternative API test failed"
