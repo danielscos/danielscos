@@ -15,6 +15,7 @@ jobs:
       - uses: athul/waka-readme@master
         with:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+          API_BASE_URL: https://hackatime.hackclub.com/api/hackatime/v1 # Change this to your service URL (e.g., https://wakapi.dev/api or https://hakatime.mtx-dev.xyz/api)
           SHOW_TITLE: true
           BLOCKS: ░▒▓█
           TIME_RANGE: last_7_days
