@@ -220,7 +220,7 @@ jobs:
 
                   progress_bar = create_progress_bar(percent)
 
-                  content += f"{name:<15} {time_str:<12} {progress_bar} {percent:>6.2f}%\n"
+                  content += f"{name:<15} {time_str:<15} {progress_bar} {percent:>6.2f}%\n"
 
               # Show remaining items if any
               if len(items) > max_items:
@@ -285,7 +285,7 @@ jobs:
                   total_percent = sum(lang.get('percent', 0) for lang in languages)
                   print(f"🔤 Total percentage from languages: {total_percent:.2f}%")
 
-                  content += format_section("Programming Languages", languages, "💬", 20, correct_total_seconds)
+                  content += format_section("Programming Languages", languages, "💬", 5, correct_total_seconds)
 
               # Operating Systems
               operating_systems = stats.get('operating_systems', [])
