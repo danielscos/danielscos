@@ -208,15 +208,10 @@ jobs:
                   name = item.get('name', 'Unknown')
                   percent = item.get('percent', 0)
 
-                  # Calculate actual time from percentage of total (more accurate than API seconds)
-                  if total_seconds:
-                      actual_seconds = calculate_time_from_percentage(total_seconds, percent)
-                      time_str = format_duration(actual_seconds)
-                      print(f"  📊 {name}: {time_str} ({percent}% of {format_duration(total_seconds)})")
-                  else:
-                      api_seconds = item.get('total_seconds', 0)
-                      time_str = format_duration(api_seconds)
-                      print(f"  📊 {name}: {time_str} ({percent}%)")
+                  # Use actual API total_seconds (real time spent) instead of calculated percentages
+                  api_seconds = item.get('total_seconds', 0)
+                  time_str = format_duration(api_seconds)
+                  print(f"  📊 {name}: {time_str} ({percent}%) - using API seconds")
 
                   progress_bar = create_progress_bar(percent)
 
@@ -227,12 +222,8 @@ jobs:
                   remaining_items = len(items) - max_items
                   remaining_percent = sum(item.get('percent', 0) for item in items[max_items:])
 
-                  if total_seconds:
-                      remaining_seconds = calculate_time_from_percentage(total_seconds, remaining_percent)
-                      remaining_time = format_duration(remaining_seconds)
-                  else:
-                      remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
-                      remaining_time = format_duration(remaining_seconds)
+                  remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
+                  remaining_time = format_duration(remaining_seconds)
 
                   other_name = f"Other ({remaining_items})"
                   content += f"{other_name:<15} {remaining_time:<15} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
@@ -286,35 +277,35 @@ jobs:
                   total_percent = sum(lang.get('percent', 0) for lang in languages)
                   print(f"🔤 Total percentage from languages: {total_percent:.2f}%")
 
-                  content += format_section("Programming Languages", languages, "💬", 5, correct_total_seconds)
+                  content += format_section("Programming Languages", languages, "💬", 5)
 
               # Operating Systems
               operating_systems = stats.get('operating_systems', [])
               if operating_systems:
                   print(f"💻 OS data: {operating_systems}")
-                  content += format_section("Operating System", operating_systems, "💻", 5, correct_total_seconds)
+                  content += format_section("Operating System", operating_systems, "💻", 5)
 
               # Editors
               editors = stats.get('editors', [])
               if editors:
                   print(f"🔥 Editors data: {editors}")
-                  content += format_section("Editors", editors, "🔥", 5, correct_total_seconds)
+                  content += format_section("Editors", editors, "🔥", 5)
 
               # Projects
               projects = stats.get('projects', [])
               if projects:
                   print(f"📁 Projects data: {projects}")
                   if len(projects) <= 15:  # Show more projects
-                      content += format_section("Projects", projects, "📁", 8, correct_total_seconds)
+                      content += format_section("Projects", projects, "📁", 8)
                   else:
                       print(f"📁 Too many projects ({len(projects)}), showing top 8")
-                      content += format_section("Projects", projects, "📁", 8, correct_total_seconds)
+                      content += format_section("Projects", projects, "📁", 8)
 
               # Final verification using percentages
               print(f"🔍 VERIFICATION:")
-              print(f"   Corrected total time: {format_duration(correct_total_seconds)}")
+              print(f"   API total time: {format_duration(correct_total_seconds)}")
               print(f"   API human readable: {total_time}")
-              print(f"   Using percentages with corrected total to calculate actual times spent")
+              print(f"   Using actual API seconds for each item (real time spent)")
 
               # Check if percentages add up to 100% for each category
               if languages:
