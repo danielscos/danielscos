@@ -234,7 +234,8 @@ jobs:
                       remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
                       remaining_time = format_duration(remaining_seconds)
 
-                  content += f"Other ({remaining_items}) {remaining_time:<15} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
+                  other_name = f"Other ({remaining_items})"
+                  content += f"{other_name:<15} {remaining_time:<15} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
 
               content += "```\n"
               return content
