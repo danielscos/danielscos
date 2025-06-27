@@ -25,11 +25,17 @@
 
 ⏱️ **Total coding time this week:** {{ $totalHours }}h {{ $remainingMinutes }}m
 
+### 💾 Languages
 ```text
-{{ wakatimeDoubleCategoryBar "💾 Languages:" wakatimeData.Languages "💼 Projects:" wakatimeData.Projects 10 }}
-```
+{{ range $index, $lang := wakatimeData.Languages }}{{ if lt $index 10 }}{{ $lang.Name }}  {{ $lang.Text }}  {{ printf "%.1f" $lang.Percent }}%
+{{ end }}{{ end }}```
 
-**📝 Note:** *Total time calculated from individual project data to ensure accuracy. {{ if ne wakatimeData.TotalSeconds $totalProjectSeconds }}API reported {{ wakatimeData.HumanReadableTotal }} but projects sum to {{ $totalHours }}h {{ $remainingMinutes }}m.{{ end }}*
+### 💼 Projects
+```text
+{{ range $index, $proj := wakatimeData.Projects }}{{ if lt $index 10 }}{{ $proj.Name }}  {{ $proj.Text }}  {{ printf "%.1f" $proj.Percent }}%
+{{ end }}{{ end }}```
+
+**📝 Note:** *Total time calculated from individual project data to ensure accuracy.{{ if ne wakatimeData.TotalSeconds $totalProjectSeconds }} API reported {{ wakatimeData.HumanReadableTotal }} but projects sum to {{ $totalHours }}h {{ $remainingMinutes }}m.{{ end }}*
 
 *Data last updated: {{ wakatimeData.Start }} to {{ wakatimeData.End }}*
 
