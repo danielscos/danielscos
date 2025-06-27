@@ -208,18 +208,11 @@ jobs:
                   name = item.get('name', 'Unknown')
                   percent = item.get('percent', 0)
 
-                  # Calculate actual time from percentage if total_seconds provided
-                  if total_seconds:
-                      print(f"  📊 Calculating {name}: {percent}% of total")
-                      actual_seconds = calculate_time_from_percentage(total_seconds, percent)
-                      time_str = format_duration(actual_seconds)
+                  # Use actual total_seconds from API (more accurate than percentage calculation)
+                  api_seconds = item.get('total_seconds', 0)
+                  time_str = format_duration(api_seconds)
 
-                      # Compare with API seconds if available
-                      api_seconds = item.get('total_seconds', 0)
-                      if api_seconds > 0:
-                          print(f"    📈 API says: {format_duration(api_seconds)}, Calculated: {time_str}")
-                  else:
-                      time_str = format_duration(item.get('total_seconds', 0))
+                  print(f"  📊 {name}: {time_str} ({percent}%)")
 
                   progress_bar = create_progress_bar(percent)
 
@@ -228,14 +221,8 @@ jobs:
               # Show remaining items if any
               if len(items) > max_items:
                   remaining_items = len(items) - max_items
-                  remaining_percent = sum(item.get('percent', 0) for item in items[max_items:])
-
-                  if total_seconds:
-                      remaining_seconds = calculate_time_from_percentage(total_seconds, remaining_percent)
-                      remaining_time = format_duration(remaining_seconds)
-                  else:
-                      remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
-                      remaining_time = format_duration(remaining_seconds)
+                  remaining_seconds = sum(item.get('total_seconds', 0) for item in items[max_items:])
+                  remaining_time = format_duration(remaining_seconds)
 
                   content += f"Other ({remaining_items}) {remaining_time:<12} ░░░░░░░░░░░░░░░░░░░░░░░░░\n"
 
@@ -280,29 +267,29 @@ jobs:
                   total_percent = sum(lang.get('percent', 0) for lang in languages)
                   print(f"🔤 Total percentage from languages: {total_percent:.2f}%")
 
-                  content += format_section("Programming Languages", languages, "💬", 20, total_seconds)
+                  content += format_section("Programming Languages", languages, "💬", 20)
 
               # Operating Systems
               operating_systems = stats.get('operating_systems', [])
               if operating_systems:
                   print(f"💻 OS data: {operating_systems}")
-                  content += format_section("Operating System", operating_systems, "💻", 5, total_seconds)
+                  content += format_section("Operating System", operating_systems, "💻", 5)
 
               # Editors
               editors = stats.get('editors', [])
               if editors:
                   print(f"🔥 Editors data: {editors}")
-                  content += format_section("Editors", editors, "🔥", 5, total_seconds)
+                  content += format_section("Editors", editors, "🔥", 5)
 
               # Projects
               projects = stats.get('projects', [])
               if projects:
                   print(f"📁 Projects data: {projects}")
                   if len(projects) <= 15:  # Show more projects
-                      content += format_section("Projects", projects, "📁", 8, total_seconds)
+                      content += format_section("Projects", projects, "📁", 8)
                   else:
                       print(f"📁 Too many projects ({len(projects)}), showing top 8")
-                      content += format_section("Projects", projects, "📁", 8, total_seconds)
+                      content += format_section("Projects", projects, "📁", 8)
 
               # Final verification using percentages
               print(f"🔍 VERIFICATION:")
