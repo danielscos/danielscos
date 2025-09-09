@@ -19,10 +19,9 @@
 <!--START_SECTION:waka-->
 📊 **This Week I Spent My Time On:**
 
-⏱️ **Total Time:** 0 hrs 0 mins
-📝 *The following categories show how this time was distributed:*
-
-📅 **Last Updated:** 08/09/2025 00:51:36 UTC
+```text
+Unable to fetch coding stats at this time
+```
 
 <!--END_SECTION:waka-->
 
