@@ -19,41 +19,39 @@
 <!--START_SECTION:waka-->
 📊 **This Week I Spent My Time On:**
 
-⏱️ **Total Time:** 1 hrs 23 mins
+⏱️ **Total Time:** 0 hrs 30 mins
 📝 *The following categories show how this time was distributed:*
 
 💬 **Programming Languages:**
 ```text
-Kotlin          25 mins         ███████░░░░░░░░░░░░░░░░░░  30.20%
-Markdown        15 mins         ████░░░░░░░░░░░░░░░░░░░░░  18.24%
-Prolog          8 mins          ██░░░░░░░░░░░░░░░░░░░░░░░  10.03%
-TypeScript      7 mins          ██░░░░░░░░░░░░░░░░░░░░░░░   9.04%
-Java properties 5 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   6.78%
-Other (8)       21 mins         ░░░░░░░░░░░░░░░░░░░░░░░░░
+Kotlin          9 mins          ███████░░░░░░░░░░░░░░░░░░  30.16%
+Prolog          7 mins          ██████░░░░░░░░░░░░░░░░░░░  24.96%
+C++             3 mins          ██░░░░░░░░░░░░░░░░░░░░░░░  11.48%
+Unknown         3 mins          ██░░░░░░░░░░░░░░░░░░░░░░░  11.24%
+Ini             1 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   5.62%
+Other (3)       5 mins          ░░░░░░░░░░░░░░░░░░░░░░░░░
 ```
 
 💻 **Operating System:**
 ```text
-Linux           1 hrs 23 mins   █████████████████████████ 100.00%
+Linux           30 mins         █████████████████████████ 100.00%
 ```
 
 🔥 **Editors:**
 ```text
-Androidstudio   40 mins         ████████████░░░░░░░░░░░░░  48.55%
-Zed             31 mins         █████████░░░░░░░░░░░░░░░░  38.44%
-Vs code         6 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   7.93%
-Godot           4 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   5.08%
+Androidstudio   19 mins         ███████████████░░░░░░░░░░  61.82%
+Vs code         7 mins          █████░░░░░░░░░░░░░░░░░░░░  23.28%
+Godot           4 mins          ███░░░░░░░░░░░░░░░░░░░░░░  14.90%
 ```
 
 📁 **Projects:**
 ```text
-Otter           47 mins         ██████████████░░░░░░░░░░░  56.68%
-Boykisser_shooter 24 mins         ███████░░░░░░░░░░░░░░░░░░  30.05%
-9keyeeninekeynikee 6 mins          ██░░░░░░░░░░░░░░░░░░░░░░░   8.09%
-Blind           4 mins          █░░░░░░░░░░░░░░░░░░░░░░░░   5.18%
+Otter           19 mins         ███████████████░░░░░░░░░░  61.82%
+9keyeeninekeynikee 7 mins          █████░░░░░░░░░░░░░░░░░░░░  23.28%
+Blind           4 mins          ███░░░░░░░░░░░░░░░░░░░░░░  14.90%
 ```
 
-📅 **Last Updated:** 25/02/2026 01:14:14 UTC
+📅 **Last Updated:** 26/02/2026 01:07:24 UTC
 
 <!--END_SECTION:waka-->
 
