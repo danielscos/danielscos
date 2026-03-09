@@ -19,10 +19,30 @@
 <!--START_SECTION:waka-->
 📊 **This Week I Spent My Time On:**
 
-⏱️ **Total Time:** 0 hrs 0 mins
+⏱️ **Total Time:** 0 hrs 6 mins
 📝 *The following categories show how this time was distributed:*
 
-📅 **Last Updated:** 08/03/2026 01:09:42 UTC
+💬 **Programming Languages:**
+```text
+Python          6 mins          █████████████████████████ 100.00%
+```
+
+💻 **Operating System:**
+```text
+Windows         6 mins          █████████████████████████ 100.00%
+```
+
+🔥 **Editors:**
+```text
+Vs code         6 mins          █████████████████████████ 100.00%
+```
+
+📁 **Projects:**
+```text
+Python project  6 mins          █████████████████████████ 100.00%
+```
+
+📅 **Last Updated:** 09/03/2026 01:09:46 UTC
 
 <!--END_SECTION:waka-->
 
